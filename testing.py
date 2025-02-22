@@ -31,8 +31,8 @@ class PictureGridApp:
         self.screen_height = self.root.winfo_screenheight()
 
         self.square_size = min(self.screen_width, self.screen_height)
-        self.square_x = (self.screen_width - self.square_size) // 10
-        self.square_y = (self.screen_height - self.square_size) // 2
+        self.square_x = 0
+        self.square_y = (self.screen_height - self.square_size) // 10
 
         self.background_canvas = Canvas(self.root, width=self.screen_width, height=self.screen_height, bg="black", highlightthickness=0)
         self.background_canvas.pack(fill="both", expand=True)
