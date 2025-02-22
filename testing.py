@@ -118,7 +118,7 @@ class PictureGridApp:
         banner_frame = Frame(self.square_frame, height=self.banner_height, bg="lightgray")
         banner_frame.pack(fill="x", padx=self.grid_x_spacing, pady=(self.title_top_spacing, self.title_grid_spacing))
 
-        banner_label = Label(banner_frame, text="Randomisiere zwei Mottos - Combine two Themes", font=("Helvetica", 24), fg="black", bg="yellow")
+        banner_label = Label(banner_frame, text="Randomisiere zwei Mottos - Randomize two Themes", font=("Helvetica", 24), fg="black", bg="yellow")
         banner_label.pack(fill="both", expand=True)
 
     def display_image_grid(self):
