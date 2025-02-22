@@ -269,5 +269,5 @@ if __name__ == "__main__":
     PRIORITY_LIST = [1, 2, 3, 4, 13, 6, 7, 8, 9, 10, 11, 17, 5, 14, 15, 16, 12, 18, 19, 20]  # Example priority list
 
     root = Tk()
-    app = PictureGridApp(root, IMAGE_DIR, BANNER_PATH, BACK_BUTTON_PATH, SELECTIONS_DIR, FILE_NAMES, LABELS, PRIORITY_LIST, scaling_factor=1.39, loading_gif_path=LOADING_GIF_PATH, background_path=BACKGROUND_PATH)
+    app = PictureGridApp(root, IMAGE_DIR, BANNER_PATH, BACK_BUTTON_PATH, SELECTIONS_DIR, FILE_NAMES, LABELS, PRIORITY_LIST, scaling_factor=1.35, loading_gif_path=LOADING_GIF_PATH, background_path=BACKGROUND_PATH)
     root.mainloop()
