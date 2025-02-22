@@ -43,8 +43,8 @@ class PictureGridApp:
         # Set up the background
         self.setup_background()
 
-        self.grid_y_spacing = int(1 * self.scaling_factor)
-        self.grid_x_spacing = int(13.4 * self.scaling_factor)
+        self.grid_y_spacing = int(5 * self.scaling_factor)
+        self.grid_x_spacing = int(13 * self.scaling_factor)
         self.image_size = (int(150 * self.scaling_factor), int(150 * self.scaling_factor))
         self.banner_height = int(100 * self.scaling_factor)
         self.font_color = "black"
