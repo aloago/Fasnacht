@@ -43,7 +43,7 @@ class PictureGridApp:
         # Set up the background
         self.setup_background()
 
-        self.grid_y_spacing = int(5 * self.scaling_factor)
+        self.grid_y_spacing = int(10 * self.scaling_factor)
         self.grid_x_spacing = int(13 * self.scaling_factor)
         self.image_size = (int(150 * self.scaling_factor), int(150 * self.scaling_factor))
         self.banner_height = int(100 * self.scaling_factor)
@@ -265,7 +265,7 @@ if __name__ == "__main__":
     BACKGROUND_PATH = os.path.join(BASE_DIR, "Images", "Other", "background_2.jpg")
 
     FILE_NAMES = ["fritschi.jpg", "hexe.jpg", "spoerri.jpg", "basler.jpg", "fisch.jpg", "affe.jpg", "sau.jpg", "krieger.jpg", "clown.jpg", "hase.jpg", "einhorn.png", "grinch.jpg", "alien.jpg", "teufel.jpg", "guy.jpg", "ueli.jpg", "steampunk.jpg", "pippi.jpg", "wonderwoman.jpg", "federer.jpg"]
-    LABELS = ["zünftig", "rüüdig", "kult-urig", "appropriated", "laborig", "huereaffig", "sauglatt", "kriegerisch", "creepy", "cute", "magisch", "cringe", "extraterrestrisch", "teuflisch", "ramdom", "schwurblig", "boomerig", "feministisch", "superstark", "bönzlig"]
+    LABELS = ["zünftig", "rüüdig", "kult-urig", "appropriated", "laborig", "huereaffig", "sauglatt", "kriegerisch", "creepy", "cute", "magisch", "cringe", "extraterrestrisch", "teuflisch", "random", "schwurblig", "boomerig", "feministisch", "superstark", "bönzlig"]
     PRIORITY_LIST = [1, 2, 3, 4, 13, 6, 7, 8, 9, 10, 11, 17, 5, 14, 15, 16, 12, 18, 19, 20]  # Example priority list
 
     root = Tk()
