@@ -124,7 +124,7 @@ class PictureGridApp:
     def display_image_grid(self):
         """Display the grid of images."""
         images_frame = Frame(self.square_frame, bg=self.grid_bg_color, highlightthickness=0)
-        images_frame.pack(fill="both", expand=True, padx=self.grid_x_spacing, pady=(0, self.grid_y_spacing))
+        images_frame.pack(fill="both", expand=True)  # Removed padx and pady
 
         for idx, image_file in enumerate(self.file_names):
             # Increase the height of the container_frame to accommodate the text
