@@ -1,5 +1,5 @@
 import os
-from tkinter import Tk, Frame, Label, Canvas, Button  # Import Button from tkinter
+from tkinter import Tk, Frame, Label, Canvas, Button
 from tkinter.font import Font
 from PIL import Image, ImageTk, ImageSequence
 
@@ -12,17 +12,15 @@ class PictureGridApp:
         self.selections_dir = selections_dir
         self.file_names = file_names
         self.labels = labels
-        self.priority_list = priority_list  # Priority list for file name order
+        self.priority_list = priority_list
         self.scaling_factor = scaling_factor
         self.loading_gif_path = loading_gif_path
         self.background_path = background_path
 
-        # Set the grid background color to blue
-        self.grid_bg_color = "#4387ba"  # Blue color
+        self.grid_bg_color = "#4387ba"
 
-        # Validate input lengths
         if len(self.file_names) != len(self.labels) or len(self.file_names) != len(self.priority_list):
-            raise ValueError("The length of file_names, labels, and priority_list must be the same.")
+            raise ValueError("Mismatched lengths for file_names, labels, and priority_list.")
 
         self.root.attributes("-fullscreen", True)
         self.root.protocol("WM_DELETE_WINDOW", self.do_nothing)
@@ -40,42 +38,46 @@ class PictureGridApp:
         self.square_frame = Frame(self.root, width=self.square_size, height=self.square_size, bg="black", highlightthickness=0)
         self.square_frame.place(x=self.square_x, y=self.square_y)
 
-        # Set up the background
+        # Main and Selection Frames
+        self.main_frame = Frame(self.square_frame, bg="black", highlightthickness=0)
+        self.selection_frame = Frame(self.square_frame, bg="black", highlightthickness=0)
+        self.main_frame.pack(fill='both', expand=True)
+        self.selection_frame.pack_forget()
+
         self.setup_background()
 
-        self.grid_y_spacing = int(10 * self.scaling_factor)
+        self.grid_y_spacing = int(9 * self.scaling_factor)
         self.grid_x_spacing = int(13 * self.scaling_factor)
         self.image_size = (int(150 * self.scaling_factor), int(150 * self.scaling_factor))
         self.banner_height = int(100 * self.scaling_factor)
         self.font_color = "black"
         self.font_size = int(14 * self.scaling_factor)
 
-        # New variables for controlling spacing
-        self.title_top_spacing = int(20 * self.scaling_factor)  # Spacing from the top edge of the screen
-        self.title_grid_spacing = int(10 * self.scaling_factor)  # Spacing between the title and the grid
+        self.title_top_spacing = int(20 * self.scaling_factor)
+        self.title_grid_spacing = int(10 * self.scaling_factor)
 
         self.loading_time = 3000
-        self.back_button_width = 200  # Increased width
-        self.back_button_height = 50  # Increased height
+        self.back_button_width = 200
+        self.back_button_height = 50
         self.back_button_x_offset = 1
         self.back_button_y_offset = 1
 
         self.clicked_images = []
-        self.selected_frames = {}
+        self.image_labels = []  # To track image labels for highlight reset
         self.image_cache = {}
 
         self.root.title("Kombiniere zwei Masken")
-        self.selection_frame = None
 
-        # Pre-render images and set up loading screen
+        # Pre-render images and setup loading screen
         self.pre_render_images()
         self.setup_loading_screen()
 
+        # Setup UI components
         self.display_banner()
         self.display_image_grid()
+        self.setup_selection_frame()
 
     def setup_background(self):
-        """Set up the background image."""
         if self.background_path and os.path.exists(self.background_path):
             self.background_image = Image.open(self.background_path)
             self.background_image = self.background_image.resize((self.square_size, self.square_size), Image.Resampling.LANCZOS)
@@ -86,7 +88,6 @@ class PictureGridApp:
             self.background_label = None
 
     def pre_render_images(self):
-        """Pre-render all images to the correct size and cache them."""
         self.image_cache = {}
         for image_file in self.file_names:
             image_path = os.path.join(self.image_dir, image_file)
@@ -95,12 +96,10 @@ class PictureGridApp:
                 img = img.resize(self.image_size, Image.Resampling.LANCZOS)
                 self.image_cache[image_file] = ImageTk.PhotoImage(img)
             else:
-                print(f"Warning: File {image_file} not found in {self.image_dir}. Skipping.")
+                print(f"Warning: {image_file} not found.")
 
     def setup_loading_screen(self):
-        """Set up the loading screen with a GIF or static text."""
         if not self.loading_gif_path or not os.path.exists(self.loading_gif_path):
-            print(f"Warning: Loading GIF not found at {self.loading_gif_path}.")
             self.loading_label = Label(self.square_frame, text="Loading...", font=("Helvetica", 24), fg="white", bg="black")
         else:
             self.loading_gif = Image.open(self.loading_gif_path)
@@ -108,166 +107,115 @@ class PictureGridApp:
                 ImageTk.PhotoImage(frame.resize((self.square_size, self.square_size), Image.Resampling.LANCZOS))
                 for frame in ImageSequence.Iterator(self.loading_gif)
             ]
-            self.loading_label = Label(self.square_frame, bg="black", highlightthickness=0)
+            self.loading_label = Label(self.square_frame, bg="black")
             self.current_frame = 0
-
-        self.loading_label.pack_forget()  # Hide initially
+        self.loading_label.pack_forget()
 
     def display_banner(self):
-        """Display the banner at the top of the screen."""
-        banner_frame = Frame(self.square_frame, height=self.banner_height, bg="lightgray")
+        banner_frame = Frame(self.main_frame, height=self.banner_height, bg="lightgray")
         banner_frame.pack(fill="x", padx=self.grid_x_spacing, pady=(self.title_top_spacing, self.title_grid_spacing))
-
-        banner_label = Label(banner_frame, text="Randomisiere zwei Mottos - Randomize two Themes", font=("Helvetica", 24), fg="black", bg="yellow")
-        banner_label.pack(fill="both", expand=True)
+        Label(banner_frame, text="Randomisiere zwei Mottos - Randomize two Themes", 
+              font=("Helvetica", 24), fg="black", bg="yellow").pack(fill="both", expand=True)
 
     def display_image_grid(self):
-        """Display the grid of images."""
-        images_frame = Frame(self.square_frame, bg=self.grid_bg_color, highlightthickness=0)
-        images_frame.pack(fill="both", expand=True)  # Removed padx and pady
+        images_frame = Frame(self.main_frame, bg=self.grid_bg_color)
+        images_frame.pack(fill="both", expand=True)
 
+        self.image_labels = []
         for idx, image_file in enumerate(self.file_names):
-            # Increase the height of the container_frame to accommodate the text
-            container_frame = Frame(images_frame, width=self.image_size[0], height=self.image_size[1] + 40, bg=self.grid_bg_color, highlightthickness=0)
+            container_frame = Frame(images_frame, width=self.image_size[0], height=self.image_size[1] + 40, 
+                                  bg=self.grid_bg_color, highlightthickness=0)
             container_frame.grid(row=idx // 5, column=idx % 5, padx=self.grid_x_spacing, pady=self.grid_y_spacing)
             container_frame.pack_propagate(False)
 
             photo = self.image_cache[image_file]
-            img_label = Label(container_frame, image=photo, bg=self.grid_bg_color, highlightthickness=0)  # No border on startup
+            img_label = Label(container_frame, image=photo, bg=self.grid_bg_color, highlightthickness=0)
             img_label.image = photo
             img_label.pack()
+            self.image_labels.append(img_label)
 
-            # Add padding to the text label to give it more space
-            text_label = Label(container_frame, text=self.labels[idx], font=("Helvetica", self.font_size), fg="white", bg=self.grid_bg_color)
-            text_label.pack(pady=(5, 10))  # Add padding at the top and bottom of the text label
+            Label(container_frame, text=self.labels[idx], font=("Helvetica", self.font_size), 
+                 fg="white", bg=self.grid_bg_color).pack(pady=(5, 10))
+            img_label.bind("<Button-1>", lambda e, f=image_file, l=img_label: self.on_image_click(f, l))
 
-            img_label.bind("<Button-1>", lambda e, file=image_file, label=img_label: self.on_image_click(file, label))
+    def setup_selection_frame(self):
+        # Combined image label
+        self.combined_image_label = Label(self.selection_frame, bg="black", highlightthickness=0)
+        self.combined_image_label.pack(fill="both", expand=True)
+
+        # Back Button
+        Button(self.selection_frame, text="← Back", bg="yellow", fg="black",
+              font=("Helvetica", 16), relief="flat", command=self.reset_selection).place(
+              relx=1.0, rely=1.0, anchor="se", width=200, height=50)
 
     def on_image_click(self, image_file, img_label):
-        """Handle image click events."""
         if image_file in self.clicked_images:
-            # If the image is already selected, deselect it
             self.clicked_images.remove(image_file)
-            img_label.config(highlightthickness=0)  # Remove the border
+            img_label.config(highlightthickness=0)
         else:
             if len(self.clicked_images) < 2:
-                # If the image is not selected and fewer than 2 images are selected, select it
                 self.clicked_images.append(image_file)
-                img_label.config(
-                    highlightthickness=4,  # Add a border
-                    highlightbackground="yellow"  # Set the border color to yellow
-                )
-
-        # If two images are selected, show the loading screen
+                img_label.config(highlightthickness=4, highlightbackground="yellow")
         if len(self.clicked_images) == 2:
             self.show_loading_screen()
 
     def show_loading_screen(self):
-        """Show the loading screen."""
-        self.clear_window()
+        self.main_frame.pack_forget()
         self.loading_label.pack(fill="both", expand=True)
         if hasattr(self, "loading_frames"):
             self.play_gif()
         self.root.after(self.loading_time, self.stop_gif_and_show_selection_screen)
 
     def play_gif(self):
-        """Play the loading GIF animation."""
-        if hasattr(self, "loading_label") and self.loading_label.winfo_exists():
+        if self.loading_label.winfo_exists():
             self.loading_label.config(image=self.loading_frames[self.current_frame])
             self.current_frame = (self.current_frame + 1) % len(self.loading_frames)
             self.root.after(100, self.play_gif)
 
     def stop_gif_and_show_selection_screen(self):
-        """Stop the GIF and show the selection screen."""
-        if hasattr(self, "loading_label"):
-            self.loading_label.pack_forget()  # Hide the loading label
+        self.loading_label.pack_forget()
         self.show_selection_screen()
 
     def show_selection_screen(self):
-        """Show the selection screen with the combined image."""
-        self.clear_window()
+        self.main_frame.pack_forget()
+        self.selection_frame.pack(fill="both", expand=True)
 
-        # Sort clicked_images based on priority_list
         if len(self.clicked_images) == 2:
             try:
-                # Sort based on priority_list
-                sorted_clicked_images = sorted(
-                    self.clicked_images,
-                    key=lambda x: self.priority_list[self.file_names.index(x)]
-                )
-            except ValueError as e:
-                print(f"Error: {e}. Ensure all clicked images are in file_names.")
-                return
+                sorted_clicked = sorted(self.clicked_images, key=lambda x: self.priority_list[self.file_names.index(x)])
+                new_image_name = f"{os.path.splitext(sorted_clicked[0])[0]}-{os.path.splitext(sorted_clicked[1])[0]}.jpg"
+                new_image_path = os.path.join(self.selections_dir, new_image_name)
 
-            # Create the combined file name
-            new_image_name = f"{os.path.splitext(sorted_clicked_images[0])[0]}-{os.path.splitext(sorted_clicked_images[1])[0]}.jpg"
-            new_image_path = os.path.join(self.selections_dir, new_image_name)
-
-            if not os.path.exists(new_image_path):
-                print(f"Warning: File {new_image_name} not found in {self.selections_dir}.")
-                return
-
-            # Load and display the combined image
-            new_image = Image.open(new_image_path)
-            new_image = new_image.resize((self.square_size, self.square_size), Image.Resampling.LANCZOS)
-            new_photo = ImageTk.PhotoImage(new_image)
-
-            background_label = Label(self.square_frame, image=new_photo, bg="black", highlightthickness=0)
-            background_label.image = new_photo
-            background_label.pack(fill="both", expand=True)
-
-            # Add the back button
-            back_button = Button(
-                self.square_frame,
-                text="← Back",
-                bg="yellow",  # Set background color to yellow
-                fg="black",  # Set text color to black
-                font=("Helvetica", 16),  # Increase font size
-                relief="flat",  # Remove button border
-                command=self.reset_selection
-            )
-            back_button.place(
-                relx=1.0,  # Position at the right edge
-                rely=1.0,  # Position at the bottom edge
-                anchor="se",  # Anchor to the bottom-right corner
-                width=200,  # Set width
-                height=50,  # Set height
-            )
+                if os.path.exists(new_image_path):
+                    new_image = Image.open(new_image_path).resize((self.square_size, self.square_size), Image.Resampling.LANCZOS)
+                    new_photo = ImageTk.PhotoImage(new_image)
+                    self.combined_image_label.config(image=new_photo)
+                    self.combined_image_label.image = new_photo
+            except Exception as e:
+                print(f"Error loading image: {e}")
 
     def reset_selection(self):
-        """Reset the selection and return to the image grid."""
         self.clicked_images = []
-        self.selected_frames = {}
-        self.clear_window()
-        self.setup_background()  # Recreate the background
-        self.display_banner()
-        self.display_image_grid()
-        self.setup_loading_screen()  # Reinitialize the loading screen
-
-    def clear_window(self):
-        """Clear all widgets from the square frame except the background and loading labels."""
-        for widget in self.square_frame.winfo_children():
-            if widget not in [self.background_label, self.loading_label]:
-                widget.destroy()
+        for label in self.image_labels:
+            label.config(highlightthickness=0)
+        self.selection_frame.pack_forget()
+        self.main_frame.pack(fill="both", expand=True)
 
     def do_nothing(self):
-        """Override the close button to do nothing."""
         pass
-
 
 if __name__ == "__main__":
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     IMAGE_DIR = os.path.join(BASE_DIR, "Images", "Grid")
-    BANNER_PATH = os.path.join(BASE_DIR, "Images", "Other", "banner.png")
-    BACK_BUTTON_PATH = os.path.join(BASE_DIR, "Images", "Other", "backbutton.png")
     SELECTIONS_DIR = os.path.join(BASE_DIR, "Images", "Selections")
     LOADING_GIF_PATH = os.path.join(BASE_DIR, "Images", "Other", "loading.gif")
     BACKGROUND_PATH = os.path.join(BASE_DIR, "Images", "Other", "background_2.jpg")
 
     FILE_NAMES = ["fritschi.jpg", "hexe.jpg", "spoerri.jpg", "basler.jpg", "fisch.jpg", "affe.jpg", "sau.jpg", "krieger.jpg", "clown.jpg", "hase.jpg", "einhorn.png", "grinch.jpg", "alien.jpg", "teufel.jpg", "guy.jpg", "ueli.jpg", "steampunk.jpg", "pippi.jpg", "wonderwoman.jpg", "federer.jpg"]
     LABELS = ["zünftig", "rüüdig", "kult-urig", "appropriated", "laborig", "huereaffig", "sauglatt", "kriegerisch", "creepy", "cute", "magisch", "cringe", "extraterrestrisch", "teuflisch", "random", "schwurblig", "boomerig", "feministisch", "superstark", "bönzlig"]
-    PRIORITY_LIST = [1, 2, 3, 4, 13, 6, 7, 8, 9, 10, 11, 17, 5, 14, 15, 16, 12, 18, 19, 20]  # Example priority list
+    PRIORITY_LIST = [1, 2, 3, 4, 13, 6, 7, 8, 9, 10, 11, 17, 5, 14, 15, 16, 12, 18, 19, 20]
 
     root = Tk()
-    app = PictureGridApp(root, IMAGE_DIR, BANNER_PATH, BACK_BUTTON_PATH, SELECTIONS_DIR, FILE_NAMES, LABELS, PRIORITY_LIST, scaling_factor=1.37, loading_gif_path=LOADING_GIF_PATH, background_path=BACKGROUND_PATH)
+    app = PictureGridApp(root, IMAGE_DIR, None, None, SELECTIONS_DIR, FILE_NAMES, LABELS, PRIORITY_LIST, 
+                        scaling_factor=1.37, loading_gif_path=LOADING_GIF_PATH, background_path=BACKGROUND_PATH)
     root.mainloop()
