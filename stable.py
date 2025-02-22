@@ -31,8 +31,8 @@ class PictureGridApp:
         self.screen_height = self.root.winfo_screenheight()
 
         self.square_size = min(self.screen_width, self.screen_height)
-        self.square_x = (self.screen_width - self.square_size) // 10
-        self.square_y = (self.screen_height - self.square_size) // 2
+        self.square_x = 0
+        self.square_y = (self.screen_height - self.square_size) // 10
 
         self.background_canvas = Canvas(self.root, width=self.screen_width, height=self.screen_height, bg="black", highlightthickness=0)
         self.background_canvas.pack(fill="both", expand=True)
@@ -118,7 +118,7 @@ class PictureGridApp:
         banner_frame = Frame(self.square_frame, height=self.banner_height, bg="lightgray")
         banner_frame.pack(fill="x", padx=self.grid_x_spacing, pady=(self.title_top_spacing, self.title_grid_spacing))
 
-        banner_label = Label(banner_frame, text="Randomisiere zwei Mottos - Combine two Themes", font=("Helvetica", 24), fg="black", bg="yellow")
+        banner_label = Label(banner_frame, text="Randomisiere zwei Mottos - Randomize two Themes", font=("Helvetica", 24), fg="black", bg="yellow")
         banner_label.pack(fill="both", expand=True)
 
     def display_image_grid(self):
@@ -269,5 +269,5 @@ if __name__ == "__main__":
     PRIORITY_LIST = [1, 2, 3, 4, 13, 6, 7, 8, 9, 10, 11, 17, 5, 14, 15, 16, 12, 18, 19, 20]  # Example priority list
 
     root = Tk()
-    app = PictureGridApp(root, IMAGE_DIR, BANNER_PATH, BACK_BUTTON_PATH, SELECTIONS_DIR, FILE_NAMES, LABELS, PRIORITY_LIST, scaling_factor=0.9, loading_gif_path=LOADING_GIF_PATH, background_path=BACKGROUND_PATH)
+    app = PictureGridApp(root, IMAGE_DIR, BANNER_PATH, BACK_BUTTON_PATH, SELECTIONS_DIR, FILE_NAMES, LABELS, PRIORITY_LIST, scaling_factor=1.4, loading_gif_path=LOADING_GIF_PATH, background_path=BACKGROUND_PATH)
     root.mainloop()
