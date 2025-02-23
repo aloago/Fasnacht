@@ -36,7 +36,7 @@ class PictureGridApp:
         # Set up image size and other grid-related attributes
         self.image_size = (int(139 * self.scaling_factor), int(139 * self.scaling_factor))
         self.grid_x_spacing = int(30 * self.scaling_factor)
-        self.grid_y_spacing = int(50 * self.scaling_factor)
+        self.grid_y_spacing = int(44 * self.scaling_factor)
         self.banner_height = int(100 * self.scaling_factor)  # Increased height to accommodate rounded rectangle
 
         # Calculate the square block size
@@ -101,7 +101,7 @@ class PictureGridApp:
         banner_rect_width = self.square_size - 2 * self.grid_x_spacing
         banner_rect_height = self.banner_height - 20  # Adjust height for padding
         banner_rect_x = self.square_x + self.grid_x_spacing 
-        banner_rect_y = self.square_y + 40  # Add some padding at the top
+        banner_rect_y = self.square_y + 30  # Add some padding at the top
 
         # Draw the rounded rectangle
         pygame.draw.rect(
