@@ -42,7 +42,7 @@ class PictureGridApp:
         # Calculate the square block size
         self.square_size = min(self.screen_width, self.screen_height)
         self.square_x = (self.screen_width - self.square_size) // 10
-        self.square_y = (self.screen_height - self.square_size) // 2
+        self.square_y = (self.screen_height - self.square_size) // 10
 
         # Set up images
         self.image_cache = {}
@@ -100,7 +100,7 @@ class PictureGridApp:
         # Calculate the size of the rounded rectangle
         banner_rect_width = self.square_size - 2 * self.grid_x_spacing
         banner_rect_height = self.banner_height - 20  # Adjust height for padding
-        banner_rect_x = self.square_x + self.grid_x_spacing
+        banner_rect_x = self.square_x + self.grid_x_spacing + 20
         banner_rect_y = self.square_y + 10  # Add some padding at the top
 
         # Draw the rounded rectangle
