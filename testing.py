@@ -15,9 +15,9 @@ class PictureGridApp:
         self.scaling_factor = scaling_factor
         self.background_path = background_path
 
-        # Initialize pygame
+        # Initialize pygame with optimizations
         pygame.init()
-        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.HWSURFACE)
         self.screen_width, self.screen_height = self.screen.get_size()
         self.clock = pygame.time.Clock()
 
@@ -44,7 +44,9 @@ class PictureGridApp:
 
         # Set up images
         self.image_cache = {}
+        self.selected_frames = {}
         self.pre_render_images()
+        self.pre_render_selection_images()
 
         # Set up background
         self.background_image = None
@@ -52,7 +54,6 @@ class PictureGridApp:
 
         # Set up state
         self.clicked_images = set()  # Use a set to track clicked images
-        self.selected_frames = {}
 
         # Start the main loop
         self.running = True
@@ -74,6 +75,19 @@ class PictureGridApp:
                 self.image_cache[image_file] = img
             else:
                 print(f"Warning: File {image_file} not found in {self.image_dir}. Skipping.")
+
+    def pre_render_selection_images(self):
+        """Pre-render all possible selection images to the correct size and cache them."""
+        for i in range(len(self.file_names)):
+            for j in range(i + 1, len(self.file_names)):
+                img1 = self.file_names[i]
+                img2 = self.file_names[j]
+                new_image_name = f"{os.path.splitext(img1)[0]}-{os.path.splitext(img2)[0]}.jpg"
+                new_image_path = os.path.join(self.selections_dir, new_image_name)
+                if os.path.exists(new_image_path):
+                    img = pygame.image.load(new_image_path)
+                    img = pygame.transform.scale(img, (self.square_size, self.square_size))
+                    self.selected_frames[new_image_name] = img
 
     def display_banner(self):
         """Display the banner at the top of the square block."""
@@ -141,46 +155,51 @@ class PictureGridApp:
                 key=lambda x: self.priority_list[self.file_names.index(x)]
             )
             new_image_name = f"{os.path.splitext(sorted_clicked_images[0])[0]}-{os.path.splitext(sorted_clicked_images[1])[0]}.jpg"
-            new_image_path = os.path.join(self.selections_dir, new_image_name)
-
-            if os.path.exists(new_image_path):
-                new_image = pygame.image.load(new_image_path)
-                new_image = pygame.transform.scale(new_image, (self.square_size, self.square_size))
+            
+            if new_image_name in self.selected_frames:
+                new_image = self.selected_frames[new_image_name]
                 self.screen.blit(new_image, (self.square_x, self.square_y))
+            else:
+                # Fallback to loading the image if not pre-rendered
+                new_image_path = os.path.join(self.selections_dir, new_image_name)
+                if os.path.exists(new_image_path):
+                    new_image = pygame.image.load(new_image_path)
+                    new_image = pygame.transform.scale(new_image, (self.square_size, self.square_size))
+                    self.screen.blit(new_image, (self.square_x, self.square_y))
 
-                # Draw the back button
-                back_button_rect = pygame.Rect(self.square_x + self.square_size - 210, self.square_y + self.square_size - 60, 200, 50)
-                pygame.draw.rect(self.screen, (255, 255, 0), back_button_rect, border_radius=10)  # Yellow button with rounded corners
-                back_button_text = self.font.render("← Back", True, (0, 0, 0))  # Black text
-                back_button_text_rect = back_button_text.get_rect(center=back_button_rect.center)
-                self.screen.blit(back_button_text, back_button_text_rect)
+            # Draw the back button
+            back_button_rect = pygame.Rect(self.square_x + self.square_size - 210, self.square_y + self.square_size - 60, 200, 50)
+            pygame.draw.rect(self.screen, (255, 255, 0), back_button_rect, border_radius=10)  # Yellow button with rounded corners
+            back_button_text = self.font.render("← Back", True, (0, 0, 0))  # Black text
+            back_button_text_rect = back_button_text.get_rect(center=back_button_rect.center)
+            self.screen.blit(back_button_text, back_button_text_rect)
 
-                pygame.display.flip()
+            pygame.display.flip()
 
-                # Wait for back button click
-                waiting = True
-                while waiting:
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            self.running = False
+            # Wait for back button click
+            waiting = True
+            while waiting:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        self.running = False
+                        waiting = False
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        if back_button_rect.collidepoint(event.pos):
                             waiting = False
-                        elif event.type == pygame.MOUSEBUTTONDOWN:
-                            if back_button_rect.collidepoint(event.pos):
-                                waiting = False
-                                self.reset_selection()
+                            self.reset_selection()
 
     def reset_selection(self):
         """Reset the selection and return to the image grid."""
         self.clicked_images = set()
-        self.selected_frames = {}
         self.main_loop()
 
     def main_loop(self):
         """Main loop to handle events and update the screen."""
-        while self.running:
+        running = True
+        while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.running = False
+                    running = False
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     # Handle image clicks
                     for idx, image_file in enumerate(self.file_names):
@@ -193,7 +212,7 @@ class PictureGridApp:
                             self.on_image_click(image_file)
 
             # Clear the screen and draw black bars
-            self.screen.fill((0, 0, 0))  # Fill the entire screen with black
+            self.screen.fill((0, 0, 0))
 
             # Draw the background image only within the square block
             if self.background_image:
