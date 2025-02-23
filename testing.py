@@ -36,7 +36,7 @@ class PictureGridApp:
         # Set up image size and other grid-related attributes
         self.image_size = (int(139 * self.scaling_factor), int(139 * self.scaling_factor))
         self.grid_x_spacing = int(30 * self.scaling_factor)
-        self.grid_y_spacing = int(30 * self.scaling_factor)
+        self.grid_y_spacing = int(35 * self.scaling_factor)
         self.banner_height = int(100 * self.scaling_factor)  # Increased height to accommodate rounded rectangle
 
         # Calculate the square block size
