@@ -43,7 +43,7 @@ class PictureGridApp:
         # Set up the background
         self.setup_background()
 
-        self.grid_y_spacing = int(1 * self.scaling_factor)
+        self.grid_y_spacing = int(9 * self.scaling_factor)
         self.grid_x_spacing = int(13 * self.scaling_factor)
         self.image_size = (int(150 * self.scaling_factor), int(150 * self.scaling_factor))
         self.banner_height = int(100 * self.scaling_factor)
@@ -124,7 +124,7 @@ class PictureGridApp:
     def display_image_grid(self):
         """Display the grid of images."""
         images_frame = Frame(self.square_frame, bg=self.grid_bg_color, highlightthickness=0)
-        images_frame.pack(fill="both", expand=True, padx=self.grid_x_spacing, pady=(0, self.grid_y_spacing))
+        images_frame.pack(fill="both", expand=True)  # Removed padx and pady
 
         for idx, image_file in enumerate(self.file_names):
             # Increase the height of the container_frame to accommodate the text
@@ -265,9 +265,9 @@ if __name__ == "__main__":
     BACKGROUND_PATH = os.path.join(BASE_DIR, "Images", "Other", "background_2.jpg")
 
     FILE_NAMES = ["fritschi.jpg", "hexe.jpg", "spoerri.jpg", "basler.jpg", "fisch.jpg", "affe.jpg", "sau.jpg", "krieger.jpg", "clown.jpg", "hase.jpg", "einhorn.png", "grinch.jpg", "alien.jpg", "teufel.jpg", "guy.jpg", "ueli.jpg", "steampunk.jpg", "pippi.jpg", "wonderwoman.jpg", "federer.jpg"]
-    LABELS = ["zünftig", "rüüdig", "kult-urig", "appropriated", "laborig", "huereaffig", "sauglatt", "kriegerisch", "creepy", "cute", "magisch", "cringe", "extraterrestrisch", "teuflisch", "ramdom", "schwurblig", "boomerig", "feministisch", "superstark", "bönzlig"]
+    LABELS = ["zünftig", "rüüdig", "kult-urig", "appropriated", "laborig", "huereaffig", "sauglatt", "kriegerisch", "creepy", "cute", "magisch", "cringe", "extraterrestrisch", "teuflisch", "random", "schwurblig", "boomerig", "feministisch", "superstark", "bönzlig"]
     PRIORITY_LIST = [1, 2, 3, 4, 13, 6, 7, 8, 9, 10, 11, 17, 5, 14, 15, 16, 12, 18, 19, 20]  # Example priority list
 
     root = Tk()
-    app = PictureGridApp(root, IMAGE_DIR, BANNER_PATH, BACK_BUTTON_PATH, SELECTIONS_DIR, FILE_NAMES, LABELS, PRIORITY_LIST, scaling_factor=1.4, loading_gif_path=LOADING_GIF_PATH, background_path=BACKGROUND_PATH)
+    app = PictureGridApp(root, IMAGE_DIR, BANNER_PATH, BACK_BUTTON_PATH, SELECTIONS_DIR, FILE_NAMES, LABELS, PRIORITY_LIST, scaling_factor=1.37, loading_gif_path=LOADING_GIF_PATH, background_path=BACKGROUND_PATH)
     root.mainloop()
