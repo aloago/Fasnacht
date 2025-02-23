@@ -27,7 +27,7 @@ class PictureGridApp:
         self.grid_bg_color = (67, 135, 186)  # Blue color
         self.font_color = (255, 255, 255)  # White color
         self.banner_color = (255, 255, 0)  # Yellow color for the banner
-        self.highlight_color = (255, 255, 0)  # Yellow color for highlighting
+        self.highlight_color = (255, 255, 255)  # White color for highlighting
 
         # Set up fonts
         self.font = pygame.font.Font(None, int(24 * self.scaling_factor))  # Font for labels
@@ -59,6 +59,14 @@ class PictureGridApp:
         # Set up state
         self.clicked_images = set()  # Use a set to track clicked images
         self.selected_frames = {}
+
+        # Pre-load checkmark image
+        self.checkmark_path = os.path.join(os.path.dirname(__file__), "checkmark.png")
+        if os.path.exists(self.checkmark_path):
+            self.checkmark = pygame.image.load(self.checkmark_path)
+            self.checkmark = pygame.transform.scale(self.checkmark, (40, 40))
+        else:
+            self.checkmark = None
 
         # Start the main loop
         self.running = True
@@ -115,6 +123,20 @@ class PictureGridApp:
         text_rect = banner_surface.get_rect(center=(banner_rect_x + banner_rect_width // 2, banner_rect_y + banner_rect_height // 2))
         self.screen.blit(banner_surface, text_rect)
 
+    def draw_selection_indicator(self, x, y, image_file):
+        """Draw a simple selection indicator using minimal resources."""
+        if image_file in self.clicked_images:
+            # Option 1: Draw a simple semi-transparent white overlay
+            overlay = pygame.Surface(self.image_size)
+            overlay.set_alpha(64)  # Adjust alpha value (0-255)
+            overlay.fill((255, 255, 255))
+            self.screen.blit(overlay, (x, y))
+            
+            # Option 2: Draw a small checkmark in the corner
+            if self.checkmark:
+                checkmark_rect = self.checkmark.get_rect(topleft=(x + 5, y + 5))
+                self.screen.blit(self.checkmark, checkmark_rect)
+
     def display_image_grid(self):
         """Display the grid of images within the square block."""
         for idx, image_file in enumerate(self.file_names):
@@ -127,10 +149,8 @@ class PictureGridApp:
             img = self.image_cache[image_file]
             self.screen.blit(img, (x, y))
 
-            # Draw a yellow border if the image is clicked
-            if image_file in self.clicked_images:
-                border_rect = pygame.Rect(x - 2, y - 2, self.image_size[0] + 4, self.image_size[1] + 4)
-                pygame.draw.rect(self.screen, self.highlight_color, border_rect, width=4)
+            # Draw selection indicator
+            self.draw_selection_indicator(x, y, image_file)
 
             # Draw the label
             label_surface = self.font.render(self.labels[idx], True, self.font_color)  # Using self.font for labels
@@ -201,7 +221,7 @@ class PictureGridApp:
                         if event.type == pygame.QUIT:
                             self.running = False
                             waiting = False
-                        elif event.type == pygame.FINGERDOWN:
+                        elif event.type == pygame.MOUSEBUTTONDOWN:
                             if back_button_rect.collidepoint(event.pos):
                                 waiting = False
                                 self.reset_selection()
