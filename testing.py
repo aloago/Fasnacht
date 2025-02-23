@@ -31,13 +31,13 @@ class PictureGridApp:
 
         # Set up fonts
         self.font = pygame.font.Font(None, int(24 * self.scaling_factor))  # Font for labels
-        self.title_font = pygame.font.Font(None, int(48 * self.scaling_factor))  # Larger font for title
+        self.title_font = pygame.font.SysFont('Frutiger', int(48 * self.scaling_factor))  # Standard font for title bar
 
         # Set up image size and other grid-related attributes
         self.image_size = (int(139 * self.scaling_factor), int(139 * self.scaling_factor))
         self.grid_x_spacing = int(30 * self.scaling_factor)
         self.grid_y_spacing = int(30 * self.scaling_factor)
-        self.banner_height = int(80 * self.scaling_factor)  # Increased height to accommodate rounded rectangle
+        self.banner_height = int(100 * self.scaling_factor)  # Increased height to accommodate rounded rectangle
 
         # Calculate the square block size
         self.square_size = min(self.screen_width, self.screen_height)
