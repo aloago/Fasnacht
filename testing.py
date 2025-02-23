@@ -85,14 +85,9 @@ class PictureGridApp:
     def create_image_sprites(self):
         for idx, image_file in enumerate(self.file_names):
             img = self.image_cache[image_file]
-            # Use the Surface's copy method instead of a non-existent pygame.transform.copy()
-            img_with_border = img.copy()
-            border_rect = pygame.Rect(0, 0, img.get_width(), img.get_height())
-            pygame.draw.rect(img_with_border, self.highlight_color, border_rect, 4)
             sprite = pygame.sprite.Sprite()
             sprite.image = img
-            sprite.rect = pygame.Rect(self.get_image_position(idx), img.get_size())
-            sprite.image_with_border = img_with_border
+            sprite.rect = img.get_rect(topleft=self.get_image_position(idx))
             self.image_sprites.add(sprite)
             self.image_rects.append(sprite.rect.copy())
             self.image_labels.append(self.labels[idx])
@@ -166,7 +161,7 @@ class PictureGridApp:
 
     def reset_selection(self):
         self.clicked_images = set()
-        # Removed call to self.main_loop() to avoid nested loops.
+        self.main_loop()
 
     def main_loop(self):
         while self.running:
@@ -185,8 +180,7 @@ class PictureGridApp:
             self.image_sprites.draw(self.screen)
             for idx, rect in enumerate(self.image_rects):
                 if self.file_names[idx] in self.clicked_images:
-                    x, y = rect.topleft
-                    border_rect = pygame.Rect(x - 2, y - 2, self.image_size[0] + 4, self.image_size[1] + 4)
+                    border_rect = pygame.Rect(rect.x - 2, rect.y - 2, rect.width + 4, rect.height + 4)
                     pygame.draw.rect(self.screen, self.highlight_color, border_rect, 4)
                 label_surface = self.font.render(self.labels[idx], True, self.font_color)
                 label_rect = label_surface.get_rect(center=(rect.centerx, rect.bottom + 20))
