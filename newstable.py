@@ -1,10 +1,10 @@
 import os
 import pygame
 from pygame.locals import *
-from PIL import Image
+from PIL import Image, ImageSequence
 
 class PictureGridApp:
-    def __init__(self, image_dir, banner_path, back_button_path, selections_dir, file_names, labels, priority_list, scaling_factor=1.0, background_path=None):
+    def __init__(self, image_dir, banner_path, back_button_path, selections_dir, file_names, labels, priority_list, scaling_factor=1.0, loading_gif_path=None, background_path=None):
         self.image_dir = image_dir
         self.banner_path = banner_path
         self.back_button_path = back_button_path
@@ -13,6 +13,7 @@ class PictureGridApp:
         self.labels = labels
         self.priority_list = priority_list
         self.scaling_factor = scaling_factor
+        self.loading_gif_path = loading_gif_path
         self.background_path = background_path
 
         # Initialize pygame
@@ -46,6 +47,10 @@ class PictureGridApp:
         self.image_cache = {}
         self.pre_render_images()
 
+        # Set up loading screen
+        self.loading_frames = []
+        self.setup_loading_screen()
+
         # Set up background
         self.background_image = None
         self.setup_background()
@@ -74,6 +79,17 @@ class PictureGridApp:
                 self.image_cache[image_file] = img
             else:
                 print(f"Warning: File {image_file} not found in {self.image_dir}. Skipping.")
+
+    def setup_loading_screen(self):
+        """Set up the loading screen with a GIF or static text."""
+        if self.loading_gif_path and os.path.exists(self.loading_gif_path):
+            self.loading_gif = Image.open(self.loading_gif_path)
+            self.loading_frames = [
+                pygame.image.fromstring(frame.tobytes(), frame.size, frame.mode)
+                for frame in ImageSequence.Iterator(self.loading_gif)
+            ]
+            self.loading_frames = [pygame.transform.scale(frame, (self.square_size, self.square_size)) for frame in self.loading_frames]
+            self.current_frame = 0
 
     def display_banner(self):
         """Display the banner at the top of the square block."""
@@ -129,7 +145,22 @@ class PictureGridApp:
                 self.clicked_images.add(image_file)  # Select if fewer than 2 images are selected
 
         if len(self.clicked_images) == 2:
-            self.show_selection_screen()  # Directly show the selection screen
+            self.show_loading_screen()
+
+    def show_loading_screen(self):
+        """Show the loading screen."""
+        self.screen.fill((0, 0, 0))  # Clear the screen
+        if self.loading_frames:
+            self.play_gif()
+        pygame.time.delay(20)  # Simulate loading time
+        self.show_selection_screen()
+
+    def play_gif(self):
+        """Play the loading GIF animation."""
+        for frame in self.loading_frames:
+            self.screen.blit(frame, (self.square_x, self.square_y))
+            pygame.display.flip()
+            pygame.time.delay(100)
 
     def show_selection_screen(self):
         """Show the selection screen with the combined image."""
@@ -214,8 +245,11 @@ if __name__ == "__main__":
     BANNER_PATH = os.path.join(BASE_DIR, "Images", "Other", "banner.png")
     BACK_BUTTON_PATH = os.path.join(BASE_DIR, "Images", "Other", "backbutton.png")
     SELECTIONS_DIR = os.path.join(BASE_DIR, "Images", "Selections")
+    LOADING_GIF_PATH = os.path.join(BASE_DIR, "Images", "Other", "loading.gif")
     BACKGROUND_PATH = os.path.join(BASE_DIR, "Images", "Other", "background_2.jpg")
 
     FILE_NAMES = ["fritschi.jpg", "hexe.jpg", "spoerri.jpg", "basler.jpg", "fisch.jpg", "affe.jpg", "sau.jpg", "krieger.jpg", "clown.jpg", "hase.jpg", "einhorn.png", "grinch.jpg", "alien.jpg", "teufel.jpg", "guy.jpg", "ueli.jpg", "steampunk.jpg", "pippi.jpg", "wonderwoman.jpg", "federer.jpg"]
     LABELS = ["zünftig", "rüüdig", "kult-urig", "appropriated", "laborig", "huereaffig", "sauglatt", "kriegerisch", "creepy", "cute", "magisch", "cringe", "extraterrestrisch", "teuflisch", "random", "schwurblig", "boomerig", "feministisch", "superstark", "bönzlig"]
     PRIORITY_LIST = [1, 2, 3, 4, 13, 6, 7, 8, 9, 10, 11, 17, 5, 14, 15, 16, 12, 18, 19, 20]  # Example priority list
+
+    app = PictureGridApp(IMAGE_DIR, BANNER_PATH, BACK_BUTTON_PATH, SELECTIONS_DIR, FILE_NAMES, LABELS, PRIORITY_LIST, scaling_factor=1.37, loading_gif_path=LOADING_GIF_PATH, background_path=BACKGROUND_PATH)
