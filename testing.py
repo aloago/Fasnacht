@@ -1,6 +1,5 @@
 import os
 import pygame
-import time
 from pygame.locals import *
 from PIL import Image, ImageSequence
 
@@ -28,7 +27,7 @@ class PictureGridApp:
         self.grid_bg_color = (67, 135, 186)  # Blue color
         self.font_color = (255, 255, 255)  # White color
         self.banner_color = (255, 255, 0)  # Yellow color for the banner
-        self.highlight_color = (255, 255, 255)  # White color for highlighting
+        self.highlight_color = (255, 255, 0)  # Yellow color for highlighting
 
         # Set up fonts
         self.font = pygame.font.Font(None, int(24 * self.scaling_factor))  # Font for labels
@@ -60,19 +59,6 @@ class PictureGridApp:
         # Set up state
         self.clicked_images = set()  # Use a set to track clicked images
         self.selected_frames = {}
-
-        # Pre-load checkmark image
-        self.checkmark_path = os.path.join(os.path.dirname(__file__), "checkmark.png")
-        if os.path.exists(self.checkmark_path):
-            self.checkmark = pygame.image.load(self.checkmark_path)
-            self.checkmark = pygame.transform.scale(self.checkmark, (40, 40))
-        else:
-            self.checkmark = None
-
-        # Initialize performance measurement variables
-        self.click_time = 0
-        self.draw_time = 0
-        self.performance_measurements = []
 
         # Start the main loop
         self.running = True
@@ -129,32 +115,30 @@ class PictureGridApp:
         text_rect = banner_surface.get_rect(center=(banner_rect_x + banner_rect_width // 2, banner_rect_y + banner_rect_height // 2))
         self.screen.blit(banner_surface, text_rect)
 
-    def draw_selection_indicator(self, x, y, image_file):
-        """Draw a simple selection indicator with performance measurement."""
-        if image_file in self.clicked_images:
-            # Option 1: Draw a simple semi-transparent white overlay
-            start_draw_time = time.time()
-            overlay = pygame.Surface(self.image_size)
-            overlay.set_alpha(64)  # Adjust alpha value (0-255)
-            overlay.fill((255, 255, 255))
-            self.screen.blit(overlay, (x, y))
-            
-            # Option 2: Draw a small checkmark in the corner
-            if self.checkmark:
-                checkmark_rect = self.checkmark.get_rect(topleft=(x + 5, y + 5))
-                self.screen.blit(self.checkmark, checkmark_rect)
-            
-            # Calculate draw time
-            self.draw_time = time.time() - start_draw_time
-            self.performance_measurements.append(self.draw_time)
-            
-            # Optional: Display FPS in the corner for debugging
-            fps_text = self.font.render(f"Draw Time: {self.draw_time:.3f}s", True, (255, 255, 255))
-            self.screen.blit(fps_text, (10, 10))
+    def display_image_grid(self):
+        """Display the grid of images within the square block."""
+        for idx, image_file in enumerate(self.file_names):
+            row = idx // 5
+            col = idx % 5
+            x = self.square_x + col * (self.image_size[0] + self.grid_x_spacing) + self.grid_x_spacing
+            y = self.square_y + row * (self.image_size[1] + self.grid_y_spacing) + self.banner_height + self.grid_y_spacing
+
+            # Draw the image
+            img = self.image_cache[image_file]
+            self.screen.blit(img, (x, y))
+
+            # Draw a yellow border if the image is clicked
+            if image_file in self.clicked_images:
+                border_rect = pygame.Rect(x - 2, y - 2, self.image_size[0] + 4, self.image_size[1] + 4)
+                pygame.draw.rect(self.screen, self.highlight_color, border_rect, width=4)
+
+            # Draw the label
+            label_surface = self.font.render(self.labels[idx], True, self.font_color)  # Using self.font for labels
+            label_rect = label_surface.get_rect(center=(x + self.image_size[0] // 2, y + self.image_size[1] + 20))
+            self.screen.blit(label_surface, label_rect)
 
     def on_image_click(self, image_file):
-        """Handle image click events with performance measurement."""
-        self.click_time = time.time()
+        """Handle image click events."""
         if image_file in self.clicked_images:
             self.clicked_images.remove(image_file)  # Deselect if already clicked
         else:
@@ -228,58 +212,6 @@ class PictureGridApp:
         self.selected_frames = {}
         self.main_loop()
 
-    def calculate_performance_metrics(self):
-        """Calculate and return performance metrics."""
-        if not self.performance_measurements:
-            return {}
-            
-        total = sum(self.performance_measurements)
-        avg = total / len(self.performance_measurements)
-        min_time = min(self.performance_measurements)
-        max_time = max(self.performance_measurements)
-        
-        # Calculate standard deviation
-        variance = sum((x - avg) ** 2 for x in self.performance_measurements) / len(self.performance_measurements)
-        std_dev = variance ** 0.5
-        
-        return {
-            'average': avg,
-            'min': min_time,
-            'max': max_time,
-            'std_dev': std_dev,
-            'total_samples': len(self.performance_measurements)
-        }
-
-    def print_performance_summary(self):
-        """Print performance summary to the console."""
-        metrics = self.calculate_performance_metrics()
-        print("Performance Summary:")
-        print(f"Average draw time: {metrics['average']:.3f}s")
-        print(f"Minimum draw time: {metrics['min']:.3f}s")
-        print(f"Maximum draw time: {metrics['max']:.3f}s")
-        print(f"Standard deviation: {metrics['std_dev']:.3f}s")
-        print(f"Total measurements: {metrics['total_samples']}")
-
-    def display_image_grid(self):
-        """Display the grid of images within the square block."""
-        for idx, image_file in enumerate(self.file_names):
-            row = idx // 5
-            col = idx % 5
-            x = self.square_x + col * (self.image_size[0] + self.grid_x_spacing) + self.grid_x_spacing
-            y = self.square_y + row * (self.image_size[1] + self.grid_y_spacing) + self.banner_height + self.grid_y_spacing
-
-            # Draw the image
-            img = self.image_cache[image_file]
-            self.screen.blit(img, (x, y))
-
-            # Draw selection indicator
-            self.draw_selection_indicator(x, y, image_file)
-
-            # Draw the label
-            label_surface = self.font.render(self.labels[idx], True, self.font_color)  # Using self.font for labels
-            label_rect = label_surface.get_rect(center=(x + self.image_size[0] // 2, y + self.image_size[1] + 20))
-            self.screen.blit(label_surface, label_rect)
-
     def main_loop(self):
         """Main loop to handle events and update the screen."""
         while self.running:
@@ -296,9 +228,6 @@ class PictureGridApp:
                         rect = pygame.Rect(x, y, self.image_size[0], self.image_size[1])
                         if rect.collidepoint(event.pos):
                             self.on_image_click(image_file)
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self.print_performance_summary()
 
             # Clear the screen and draw black bars
             self.screen.fill((0, 0, 0))  # Fill the entire screen with black
@@ -332,4 +261,3 @@ if __name__ == "__main__":
     # Here, loading_duration is set to 2000 milliseconds (2 seconds)
     app = PictureGridApp(IMAGE_DIR, BANNER_PATH, BACK_BUTTON_PATH, SELECTIONS_DIR, FILE_NAMES, LABELS, PRIORITY_LIST,
                          scaling_factor=1.37, loading_gif_path=LOADING_GIF_PATH, background_path=BACKGROUND_PATH, loading_duration=2000)
-    app.main_loop()
