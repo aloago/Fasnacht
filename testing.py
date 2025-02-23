@@ -35,8 +35,8 @@ class PictureGridApp:
 
         # Set up image size and other grid-related attributes
         self.image_size = (int(139 * self.scaling_factor), int(139 * self.scaling_factor))
-        self.grid_x_spacing = int(13 * self.scaling_factor)
-        self.grid_y_spacing = int(25 * self.scaling_factor)
+        self.grid_x_spacing = int(30 * self.scaling_factor)
+        self.grid_y_spacing = int(30 * self.scaling_factor)
         self.banner_height = int(80 * self.scaling_factor)  # Increased height to accommodate rounded rectangle
 
         # Calculate the square block size
@@ -188,7 +188,7 @@ class PictureGridApp:
                 # Draw the back button
                 back_button_rect = pygame.Rect(self.square_x + self.square_size - 210, self.square_y + self.square_size - 60, 200, 50)
                 pygame.draw.rect(self.screen, (255, 255, 0), back_button_rect, border_radius=10)  # Yellow button with rounded corners
-                back_button_text = self.font.render("← Back", True, (0, 0, 0))  # Black text
+                back_button_text = self.font.render("Back", True, (0, 0, 0))  # Black text
                 back_button_text_rect = back_button_text.get_rect(center=back_button_rect.center)
                 self.screen.blit(back_button_text, back_button_text_rect)
 
