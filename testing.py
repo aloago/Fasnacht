@@ -31,7 +31,7 @@ class PictureGridApp:
 
         # Set up fonts
         self.font = pygame.font.Font(None, int(24 * self.scaling_factor))  # Font for labels
-        self.title_font = pygame.font.SysFont('Arial', int(30 * self.scaling_factor))  # Standard font for title bar
+        self.title_font = pygame.font.SysFont('Arial', int(24 * self.scaling_factor))  # Standard font for title bar
 
         # Set up image size and other grid-related attributes
         self.image_size = (int(139 * self.scaling_factor), int(139 * self.scaling_factor))
@@ -44,9 +44,10 @@ class PictureGridApp:
         self.square_x = (self.screen_width - self.square_size) // 10
         self.square_y = (self.screen_height - self.square_size) // 2
 
-        # Set up images
+        # Set up images and texts
         self.image_cache = {}
         self.pre_render_images()
+        self.pre_render_texts()  # Pre-render banner and label texts
 
         # Set up loading screen
         self.loading_frames = []
@@ -71,15 +72,29 @@ class PictureGridApp:
             self.background_image = pygame.transform.scale(self.background_image, (self.square_size, self.square_size))
 
     def pre_render_images(self):
-        """Pre-render all images to the correct size and cache them."""
+        """Pre-render all images to the correct size, convert to display format, and cache them."""
         for image_file in self.file_names:
             image_path = os.path.join(self.image_dir, image_file)
             if os.path.exists(image_path):
                 img = pygame.image.load(image_path)
                 img = pygame.transform.scale(img, self.image_size)
+                # Convert image for faster blitting. Use convert_alpha() for images with transparency.
+                img = img.convert_alpha()  
                 self.image_cache[image_file] = img
             else:
                 print(f"Warning: File {image_file} not found in {self.image_dir}. Skipping.")
+
+    def pre_render_texts(self):
+        """Pre-render banner and label texts so they don't get re-rendered every frame."""
+        # Pre-render the banner text.
+        banner_text = "Randomisiere zwei Mottos - Randomize two Themes"
+        self.banner_surface = self.title_font.render(banner_text, True, (0, 0, 0))  # Black text
+
+        # Pre-render labels for each image.
+        self.label_surfaces = []
+        for label in self.labels:
+            label_surf = self.font.render(label, True, self.font_color)
+            self.label_surfaces.append(label_surf)
 
     def setup_loading_screen(self):
         """Set up the loading screen with a GIF or static text."""
@@ -93,10 +108,7 @@ class PictureGridApp:
             self.current_frame = 0
 
     def display_banner(self):
-        """Display the banner at the top of the square block."""
-        banner_text = "Randomisiere zwei Mottos - Randomize two Themes"
-        banner_surface = self.title_font.render(banner_text, True, (0, 0, 0))  # Black text
-
+        """Display the banner at the top of the square block using pre-rendered text."""
         # Calculate the size of the rounded rectangle
         banner_rect_width = self.square_size - 2 * self.grid_x_spacing
         banner_rect_height = self.banner_height - 20  # Adjust height for padding
@@ -111,9 +123,9 @@ class PictureGridApp:
             border_radius=20  # Rounded corners
         )
 
-        # Position the text in the center of the rounded rectangle
-        text_rect = banner_surface.get_rect(center=(banner_rect_x + banner_rect_width // 2, banner_rect_y + banner_rect_height // 2))
-        self.screen.blit(banner_surface, text_rect)
+        # Position the pre-rendered banner text in the center of the rectangle.
+        text_rect = self.banner_surface.get_rect(center=(banner_rect_x + banner_rect_width // 2, banner_rect_y + banner_rect_height // 2))
+        self.screen.blit(self.banner_surface, text_rect)
 
     def display_image_grid(self):
         """Display the grid of images within the square block."""
@@ -123,17 +135,17 @@ class PictureGridApp:
             x = self.square_x + col * (self.image_size[0] + self.grid_x_spacing) + self.grid_x_spacing
             y = self.square_y + row * (self.image_size[1] + self.grid_y_spacing) + self.banner_height + self.grid_y_spacing
 
-            # Draw the image
+            # Blit the pre-rendered image.
             img = self.image_cache[image_file]
             self.screen.blit(img, (x, y))
 
-            # Draw a yellow border if the image is clicked
+            # If the image has been clicked, draw a yellow border.
             if image_file in self.clicked_images:
                 border_rect = pygame.Rect(x - 2, y - 2, self.image_size[0] + 4, self.image_size[1] + 4)
                 pygame.draw.rect(self.screen, self.highlight_color, border_rect, width=4)
 
-            # Draw the label
-            label_surface = self.font.render(self.labels[idx], True, self.font_color)  # Using self.font for labels
+            # Use the pre-rendered label surface.
+            label_surface = self.label_surfaces[idx]
             label_rect = label_surface.get_rect(center=(x + self.image_size[0] // 2, y + self.image_size[1] + 20))
             self.screen.blit(label_surface, label_rect)
 
