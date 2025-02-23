@@ -201,7 +201,7 @@ class PictureGridApp:
                         if event.type == pygame.QUIT:
                             self.running = False
                             waiting = False
-                        elif event.type == pygame.MOUSEBUTTONDOWN:
+                        elif event.type == pygame.FINGERDOWN:
                             if back_button_rect.collidepoint(event.pos):
                                 waiting = False
                                 self.reset_selection()
