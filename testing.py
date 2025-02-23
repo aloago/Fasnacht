@@ -261,7 +261,7 @@ class PictureGridApp:
             self.display_image_grid()
 
             pygame.display.flip()
-            self.clock.tick(30)
+            self.clock.tick(3)
 
         pygame.quit()
 
