@@ -222,11 +222,13 @@ class PictureGridApp:
     def show_forced_selection(self):
         """Show a random image from the predefined list without a back button."""
         forced_images = [
-            "spoerri-federer.jpg",
+            "spoerri-fisch.jpg",
             "sau-wonderwoman.jpg",
             "krieger-grinch.jpg",
             "affe-pippi.jpg",
-            "fritschi-clown.jpg"
+            "fritschi-clown.jpg",
+            "hexe-basler.jpg",
+            "alien-hase.jpg",
         ]
         selected_image = random.choice(forced_images)
         image_path = os.path.join(self.selections_dir, selected_image)
