@@ -1,5 +1,6 @@
 import os
 import pygame
+import time
 from pygame.locals import *
 from PIL import Image, ImageSequence
 
@@ -22,22 +23,22 @@ class PictureGridApp:
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen_width, self.screen_height = self.screen.get_size()
         self.clock = pygame.time.Clock()
-        pygame.mouse.set_visible(False)
+
         # Set up colors
         self.grid_bg_color = (67, 135, 186)  # Blue color
-        self.font_color = (255, 255, 255)      # White color
-        self.banner_color = (255, 255, 0)      # Yellow color for the banner
-        self.highlight_color = (255, 255, 255) # White color for highlighting
+        self.font_color = (255, 255, 255)  # White color
+        self.banner_color = (255, 255, 0)  # Yellow color for the banner
+        self.highlight_color = (255, 255, 255)  # White color for highlighting
 
         # Set up fonts
-        self.font = pygame.font.Font(None, int(24 * self.scaling_factor))
-        self.title_font = pygame.font.SysFont('Arial', int(30 * self.scaling_factor))
+        self.font = pygame.font.Font(None, int(24 * self.scaling_factor))  # Font for labels
+        self.title_font = pygame.font.SysFont('Arial', int(30 * self.scaling_factor))  # Standard font for title bar
 
-        # Set up image size and grid attributes
+        # Set up image size and other grid-related attributes
         self.image_size = (int(139 * self.scaling_factor), int(139 * self.scaling_factor))
         self.grid_x_spacing = int(30 * self.scaling_factor)
         self.grid_y_spacing = int(30 * self.scaling_factor)
-        self.banner_height = int(100 * self.scaling_factor)
+        self.banner_height = int(100 * self.scaling_factor)  # Increased height to accommodate rounded rectangle
 
         # Calculate the square block size
         self.square_size = min(self.screen_width, self.screen_height)
@@ -48,10 +49,6 @@ class PictureGridApp:
         self.image_cache = {}
         self.pre_render_images()
 
-        # Pre-render the selection indicator overlay (cached for fast blitting)
-        self.selection_overlay = pygame.Surface(self.image_size, pygame.SRCALPHA)
-        self.selection_overlay.fill((255, 255, 255, 64))  # Semi-transparent white
-
         # Set up loading screen
         self.loading_frames = []
         self.setup_loading_screen()
@@ -61,16 +58,21 @@ class PictureGridApp:
         self.setup_background()
 
         # Set up state
-        self.clicked_images = set()
+        self.clicked_images = set()  # Use a set to track clicked images
         self.selected_frames = {}
 
-        # Pre-load checkmark image (if available)
+        # Pre-load checkmark image
         self.checkmark_path = os.path.join(os.path.dirname(__file__), "checkmark.png")
         if os.path.exists(self.checkmark_path):
             self.checkmark = pygame.image.load(self.checkmark_path)
             self.checkmark = pygame.transform.scale(self.checkmark, (40, 40))
         else:
             self.checkmark = None
+
+        # Initialize performance measurement variables
+        self.click_time = 0
+        self.draw_time = 0
+        self.performance_measurements = []
 
         # Start the main loop
         self.running = True
@@ -107,78 +109,85 @@ class PictureGridApp:
     def display_banner(self):
         """Display the banner at the top of the square block."""
         banner_text = "Randomisiere zwei Mottos - Randomize two Themes"
-        banner_surface = self.title_font.render(banner_text, True, (0, 0, 0))
-        banner_rect_width = self.square_size - 2 * self.grid_x_spacing
-        banner_rect_height = self.banner_height - 20
-        banner_rect_x = self.square_x + self.grid_x_spacing
-        banner_rect_y = self.square_y + 10
+        banner_surface = self.title_font.render(banner_text, True, (0, 0, 0))  # Black text
 
+        # Calculate the size of the rounded rectangle
+        banner_rect_width = self.square_size - 2 * self.grid_x_spacing
+        banner_rect_height = self.banner_height - 20  # Adjust height for padding
+        banner_rect_x = self.square_x + self.grid_x_spacing
+        banner_rect_y = self.square_y + 10  # Add some padding at the top
+
+        # Draw the rounded rectangle
         pygame.draw.rect(
             self.screen,
-            self.banner_color,
+            self.banner_color,  # Yellow color
             (banner_rect_x, banner_rect_y, banner_rect_width, banner_rect_height),
-            border_radius=20
+            border_radius=20  # Rounded corners
         )
+
+        # Position the text in the center of the rounded rectangle
         text_rect = banner_surface.get_rect(center=(banner_rect_x + banner_rect_width // 2, banner_rect_y + banner_rect_height // 2))
         self.screen.blit(banner_surface, text_rect)
 
     def draw_selection_indicator(self, x, y, image_file):
-        """Draw a simple, performant selection indicator using a pre-rendered overlay."""
+        """Draw a simple selection indicator with performance measurement."""
         if image_file in self.clicked_images:
-            self.screen.blit(self.selection_overlay, (x, y))
+            # Option 1: Draw a simple semi-transparent white overlay
+            start_draw_time = time.time()
+            overlay = pygame.Surface(self.image_size)
+            overlay.set_alpha(64)  # Adjust alpha value (0-255)
+            overlay.fill((255, 255, 255))
+            self.screen.blit(overlay, (x, y))
+            
+            # Option 2: Draw a small checkmark in the corner
             if self.checkmark:
                 checkmark_rect = self.checkmark.get_rect(topleft=(x + 5, y + 5))
                 self.screen.blit(self.checkmark, checkmark_rect)
-
-    def display_image_grid(self):
-        """Display the grid of images within the square block."""
-        for idx, image_file in enumerate(self.file_names):
-            row = idx // 5
-            col = idx % 5
-            x = self.square_x + col * (self.image_size[0] + self.grid_x_spacing) + self.grid_x_spacing
-            y = self.square_y + row * (self.image_size[1] + self.grid_y_spacing) + self.banner_height + self.grid_y_spacing
-
-            # Draw the image
-            img = self.image_cache[image_file]
-            self.screen.blit(img, (x, y))
-
-            # Draw selection indicator (using our fast pre-rendered overlay)
-            self.draw_selection_indicator(x, y, image_file)
-
-            # Draw the label
-            label_surface = self.font.render(self.labels[idx], True, self.font_color)
-            label_rect = label_surface.get_rect(center=(x + self.image_size[0] // 2, y + self.image_size[1] + 20))
-            self.screen.blit(label_surface, label_rect)
+            
+            # Calculate draw time
+            self.draw_time = time.time() - start_draw_time
+            self.performance_measurements.append(self.draw_time)
+            
+            # Optional: Display FPS in the corner for debugging
+            fps_text = self.font.render(f"Draw Time: {self.draw_time:.3f}s", True, (255, 255, 255))
+            self.screen.blit(fps_text, (10, 10))
 
     def on_image_click(self, image_file):
-        """Handle image click events."""
+        """Handle image click events with performance measurement."""
+        self.click_time = time.time()
         if image_file in self.clicked_images:
-            self.clicked_images.remove(image_file)
+            self.clicked_images.remove(image_file)  # Deselect if already clicked
         else:
             if len(self.clicked_images) < 2:
-                self.clicked_images.add(image_file)
+                self.clicked_images.add(image_file)  # Select if fewer than 2 images are selected
+
         if len(self.clicked_images) == 2:
             self.show_loading_screen()
 
     def show_loading_screen(self):
         """Show the loading screen for a specified duration and then display the selection screen."""
         start_time = pygame.time.get_ticks()
+        # Loop until the specified loading duration has passed
         while pygame.time.get_ticks() - start_time < self.loading_duration:
+            # If a loading GIF exists, cycle through its frames repeatedly
             if self.loading_frames:
                 for frame in self.loading_frames:
-                    self.screen.fill((0, 0, 0))
+                    self.screen.fill((0, 0, 0))  # Clear the screen
                     self.screen.blit(frame, (self.square_x, self.square_y))
                     pygame.display.flip()
                     pygame.time.delay(100)
+                    # Check if the total loading duration has been exceeded
                     if pygame.time.get_ticks() - start_time >= self.loading_duration:
                         break
             else:
+                # If no GIF is provided, simply delay a bit before checking again
                 pygame.time.delay(100)
         self.show_selection_screen()
 
     def show_selection_screen(self):
         """Show the selection screen with the combined image."""
-        self.screen.fill((0, 0, 0))
+        self.screen.fill((0, 0, 0))  # Clear the screen
+
         if len(self.clicked_images) == 2:
             sorted_clicked_images = sorted(
                 self.clicked_images,
@@ -186,18 +195,22 @@ class PictureGridApp:
             )
             new_image_name = f"{os.path.splitext(sorted_clicked_images[0])[0]}-{os.path.splitext(sorted_clicked_images[1])[0]}.jpg"
             new_image_path = os.path.join(self.selections_dir, new_image_name)
+
             if os.path.exists(new_image_path):
                 new_image = pygame.image.load(new_image_path)
                 new_image = pygame.transform.scale(new_image, (self.square_size, self.square_size))
                 self.screen.blit(new_image, (self.square_x, self.square_y))
 
+                # Draw the back button
                 back_button_rect = pygame.Rect(self.square_x + self.square_size - 210, self.square_y + self.square_size - 60, 200, 50)
-                pygame.draw.rect(self.screen, (255, 255, 0), back_button_rect, border_radius=10)
-                back_button_text = self.font.render("Back", True, (0, 0, 0))
+                pygame.draw.rect(self.screen, (255, 255, 0), back_button_rect, border_radius=10)  # Yellow button with rounded corners
+                back_button_text = self.font.render("Back", True, (0, 0, 0))  # Black text
                 back_button_text_rect = back_button_text.get_rect(center=back_button_rect.center)
                 self.screen.blit(back_button_text, back_button_text_rect)
+
                 pygame.display.flip()
 
+                # Wait for back button click
                 waiting = True
                 while waiting:
                     for event in pygame.event.get():
@@ -215,6 +228,58 @@ class PictureGridApp:
         self.selected_frames = {}
         self.main_loop()
 
+    def calculate_performance_metrics(self):
+        """Calculate and return performance metrics."""
+        if not self.performance_measurements:
+            return {}
+            
+        total = sum(self.performance_measurements)
+        avg = total / len(self.performance_measurements)
+        min_time = min(self.performance_measurements)
+        max_time = max(self.performance_measurements)
+        
+        # Calculate standard deviation
+        variance = sum((x - avg) ** 2 for x in self.performance_measurements) / len(self.performance_measurements)
+        std_dev = variance ** 0.5
+        
+        return {
+            'average': avg,
+            'min': min_time,
+            'max': max_time,
+            'std_dev': std_dev,
+            'total_samples': len(self.performance_measurements)
+        }
+
+    def print_performance_summary(self):
+        """Print performance summary to the console."""
+        metrics = self.calculate_performance_metrics()
+        print("Performance Summary:")
+        print(f"Average draw time: {metrics['average']:.3f}s")
+        print(f"Minimum draw time: {metrics['min']:.3f}s")
+        print(f"Maximum draw time: {metrics['max']:.3f}s")
+        print(f"Standard deviation: {metrics['std_dev']:.3f}s")
+        print(f"Total measurements: {metrics['total_samples']}")
+
+    def display_image_grid(self):
+        """Display the grid of images within the square block."""
+        for idx, image_file in enumerate(self.file_names):
+            row = idx // 5
+            col = idx % 5
+            x = self.square_x + col * (self.image_size[0] + self.grid_x_spacing) + self.grid_x_spacing
+            y = self.square_y + row * (self.image_size[1] + self.grid_y_spacing) + self.banner_height + self.grid_y_spacing
+
+            # Draw the image
+            img = self.image_cache[image_file]
+            self.screen.blit(img, (x, y))
+
+            # Draw selection indicator
+            self.draw_selection_indicator(x, y, image_file)
+
+            # Draw the label
+            label_surface = self.font.render(self.labels[idx], True, self.font_color)  # Using self.font for labels
+            label_rect = label_surface.get_rect(center=(x + self.image_size[0] // 2, y + self.image_size[1] + 20))
+            self.screen.blit(label_surface, label_rect)
+
     def main_loop(self):
         """Main loop to handle events and update the screen."""
         while self.running:
@@ -222,6 +287,7 @@ class PictureGridApp:
                 if event.type == pygame.QUIT:
                     self.running = False
                 elif event.type == pygame.MOUSEBUTTONDOWN:
+                    # Handle image clicks
                     for idx, image_file in enumerate(self.file_names):
                         row = idx // 5
                         col = idx % 5
@@ -230,14 +296,23 @@ class PictureGridApp:
                         rect = pygame.Rect(x, y, self.image_size[0], self.image_size[1])
                         if rect.collidepoint(event.pos):
                             self.on_image_click(image_file)
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.print_performance_summary()
 
-            self.screen.fill((0, 0, 0))
+            # Clear the screen and draw black bars
+            self.screen.fill((0, 0, 0))  # Fill the entire screen with black
+
+            # Draw the background image only within the square block
             if self.background_image:
                 self.screen.blit(self.background_image, (self.square_x, self.square_y))
+
+            # Draw the banner and grid
             self.display_banner()
             self.display_image_grid()
+
             pygame.display.flip()
-            self.clock.tick(3)
+            self.clock.tick(30)
 
         pygame.quit()
 
@@ -252,7 +327,9 @@ if __name__ == "__main__":
 
     FILE_NAMES = ["fritschi.jpg", "hexe.jpg", "spoerri.jpg", "basler.jpg", "fisch.jpg", "affe.jpg", "sau.jpg", "krieger.jpg", "clown.jpg", "hase.jpg", "einhorn.png", "grinch.jpg", "alien.jpg", "teufel.jpg", "guy.jpg", "ueli.jpg", "steampunk.jpg", "pippi.jpg", "wonderwoman.jpg", "federer.jpg"]
     LABELS = ["zünftig", "rüüdig", "kult-urig", "appropriated", "laborig", "huereaffig", "sauglatt", "kriegerisch", "creepy", "cute", "magisch", "cringe", "extraterrestrisch", "teuflisch", "random", "schwurblig", "boomerig", "feministisch", "superstark", "bönzlig"]
-    PRIORITY_LIST = [1, 2, 3, 4, 13, 6, 7, 8, 9, 10, 11, 17, 5, 14, 15, 16, 12, 18, 19, 20]
+    PRIORITY_LIST = [1, 2, 3, 4, 13, 6, 7, 8, 9, 10, 11, 17, 5, 14, 15, 16, 12, 18, 19, 20]  # Example priority list
 
+    # Here, loading_duration is set to 2000 milliseconds (2 seconds)
     app = PictureGridApp(IMAGE_DIR, BANNER_PATH, BACK_BUTTON_PATH, SELECTIONS_DIR, FILE_NAMES, LABELS, PRIORITY_LIST,
                          scaling_factor=1.37, loading_gif_path=LOADING_GIF_PATH, background_path=BACKGROUND_PATH, loading_duration=2000)
+    app.main_loop()
