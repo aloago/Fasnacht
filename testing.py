@@ -22,7 +22,7 @@ class PictureGridApp:
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         self.screen_width, self.screen_height = self.screen.get_size()
         self.clock = pygame.time.Clock()
-
+        pygame.mouse.set_visible(False)
         # Set up colors
         self.grid_bg_color = (67, 135, 186)  # Blue color
         self.font_color = (255, 255, 255)  # White color
@@ -124,18 +124,16 @@ class PictureGridApp:
         self.screen.blit(banner_surface, text_rect)
 
     def draw_selection_indicator(self, x, y, image_file):
-        """Draw a simple selection indicator using minimal resources."""
+        """Draw a simple border around selected images for fast performance."""
         if image_file in self.clicked_images:
-            # Option 1: Draw a simple semi-transparent white overlay
-            overlay = pygame.Surface(self.image_size)
-            overlay.set_alpha(64)  # Adjust alpha value (0-255)
-            overlay.fill((255, 255, 255))
-            self.screen.blit(overlay, (x, y))
-            
-            # Option 2: Draw a small checkmark in the corner
-            if self.checkmark:
-                checkmark_rect = self.checkmark.get_rect(topleft=(x + 5, y + 5))
-                self.screen.blit(self.checkmark, checkmark_rect)
+            border_width = 2  # Thin border for visibility and performance
+            border_rect = pygame.Rect(
+                x - border_width,
+                y - border_width,
+                self.image_size[0] + 2 * border_width,
+                self.image_size[1] + 2 * border_width
+            )
+            pygame.draw.rect(self.screen, self.highlight_color, border_rect, border_width)
 
     def display_image_grid(self):
         """Display the grid of images within the square block."""
