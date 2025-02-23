@@ -128,7 +128,7 @@ class PictureGridApp:
         if image_file in self.clicked_images:
             # Option 1: Draw a simple semi-transparent white overlay
             overlay = pygame.Surface(self.image_size)
-            overlay.set_alpha(128)  # Adjust alpha value (0-255)
+            overlay.set_alpha(64)  # Adjust alpha value (0-255)
             overlay.fill((255, 255, 255))
             self.screen.blit(overlay, (x, y))
             
@@ -261,7 +261,7 @@ class PictureGridApp:
             self.display_image_grid()
 
             pygame.display.flip()
-            self.clock.tick(30)
+            self.clock.tick(3)
 
         pygame.quit()
 
