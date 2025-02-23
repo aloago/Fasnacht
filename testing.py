@@ -31,7 +31,7 @@ class PictureGridApp:
 
         # Set up fonts
         self.font = pygame.font.Font(None, int(24 * self.scaling_factor))  # Font for labels
-        self.title_font = pygame.font.SysFont('Frutiger', int(48 * self.scaling_factor))  # Standard font for title bar
+        self.title_font = pygame.font.SysFont('Arial', int(44 * self.scaling_factor))  # Standard font for title bar
 
         # Set up image size and other grid-related attributes
         self.image_size = (int(139 * self.scaling_factor), int(139 * self.scaling_factor))
