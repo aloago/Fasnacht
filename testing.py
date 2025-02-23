@@ -25,9 +25,23 @@ class PictureGridApp:
         # Set up colors
         self.grid_bg_color = (67, 135, 186)  # Blue color
         self.font_color = (255, 255, 255)  # White color
+        self.banner_color = (255, 255, 0)  # Yellow color for the banner
+        self.highlight_color = (255, 255, 0)  # Yellow color for highlighting
 
         # Set up fonts
-        self.font = pygame.font.Font(None, int(24 * self.scaling_factor))
+        self.font = pygame.font.Font(None, int(24 * self.scaling_factor))  # Font for labels
+        self.title_font = pygame.font.Font(None, int(48 * self.scaling_factor))  # Larger font for title
+
+        # Set up image size and other grid-related attributes
+        self.image_size = (int(139 * self.scaling_factor), int(139 * self.scaling_factor))
+        self.grid_x_spacing = int(13 * self.scaling_factor)
+        self.grid_y_spacing = int(25 * self.scaling_factor)
+        self.banner_height = int(80 * self.scaling_factor)  # Increased height to accommodate rounded rectangle
+
+        # Calculate the square block size
+        self.square_size = min(self.screen_width, self.screen_height)
+        self.square_x = (self.screen_width - self.square_size) // 10
+        self.square_y = (self.screen_height - self.square_size) // 2
 
         # Set up images
         self.image_cache = {}
@@ -41,14 +55,8 @@ class PictureGridApp:
         self.background_image = None
         self.setup_background()
 
-        # Set up grid
-        self.grid_x_spacing = int(13 * self.scaling_factor)
-        self.grid_y_spacing = int(9 * self.scaling_factor)
-        self.image_size = (int(150 * self.scaling_factor), int(150 * self.scaling_factor))
-        self.banner_height = int(100 * self.scaling_factor)
-
         # Set up state
-        self.clicked_images = []
+        self.clicked_images = set()  # Use a set to track clicked images
         self.selected_frames = {}
 
         # Start the main loop
@@ -56,10 +64,10 @@ class PictureGridApp:
         self.main_loop()
 
     def setup_background(self):
-        """Set up the background image."""
+        """Set up the background image for the square block."""
         if self.background_path and os.path.exists(self.background_path):
             self.background_image = pygame.image.load(self.background_path)
-            self.background_image = pygame.transform.scale(self.background_image, (self.screen_width, self.screen_height))
+            self.background_image = pygame.transform.scale(self.background_image, (self.square_size, self.square_size))
 
     def pre_render_images(self):
         """Pre-render all images to the correct size and cache them."""
@@ -80,40 +88,61 @@ class PictureGridApp:
                 pygame.image.fromstring(frame.tobytes(), frame.size, frame.mode)
                 for frame in ImageSequence.Iterator(self.loading_gif)
             ]
-            self.loading_frames = [pygame.transform.scale(frame, (self.screen_width, self.screen_height)) for frame in self.loading_frames]
+            self.loading_frames = [pygame.transform.scale(frame, (self.square_size, self.square_size)) for frame in self.loading_frames]
             self.current_frame = 0
 
     def display_banner(self):
-        """Display the banner at the top of the screen."""
+        """Display the banner at the top of the square block."""
         banner_text = "Randomisiere zwei Mottos - Randomize two Themes"
-        banner_surface = self.font.render(banner_text, True, (0, 0, 0))  # Black text
-        banner_rect = banner_surface.get_rect(center=(self.screen_width // 2, self.banner_height // 2))
-        self.screen.blit(banner_surface, banner_rect)
+        banner_surface = self.title_font.render(banner_text, True, (0, 0, 0))  # Black text
+
+        # Calculate the size of the rounded rectangle
+        banner_rect_width = self.square_size - 2 * self.grid_x_spacing
+        banner_rect_height = self.banner_height - 20  # Adjust height for padding
+        banner_rect_x = self.square_x + self.grid_x_spacing
+        banner_rect_y = self.square_y + 10  # Add some padding at the top
+
+        # Draw the rounded rectangle
+        pygame.draw.rect(
+            self.screen,
+            self.banner_color,  # Yellow color
+            (banner_rect_x, banner_rect_y, banner_rect_width, banner_rect_height),
+            border_radius=20  # Rounded corners
+        )
+
+        # Position the text in the center of the rounded rectangle
+        text_rect = banner_surface.get_rect(center=(banner_rect_x + banner_rect_width // 2, banner_rect_y + banner_rect_height // 2))
+        self.screen.blit(banner_surface, text_rect)
 
     def display_image_grid(self):
-        """Display the grid of images."""
+        """Display the grid of images within the square block."""
         for idx, image_file in enumerate(self.file_names):
             row = idx // 5
             col = idx % 5
-            x = col * (self.image_size[0] + self.grid_x_spacing) + self.grid_x_spacing
-            y = row * (self.image_size[1] + self.grid_y_spacing) + self.banner_height + self.grid_y_spacing
+            x = self.square_x + col * (self.image_size[0] + self.grid_x_spacing) + self.grid_x_spacing
+            y = self.square_y + row * (self.image_size[1] + self.grid_y_spacing) + self.banner_height + self.grid_y_spacing
 
             # Draw the image
             img = self.image_cache[image_file]
             self.screen.blit(img, (x, y))
 
+            # Draw a yellow border if the image is clicked
+            if image_file in self.clicked_images:
+                border_rect = pygame.Rect(x - 2, y - 2, self.image_size[0] + 4, self.image_size[1] + 4)
+                pygame.draw.rect(self.screen, self.highlight_color, border_rect, width=4)
+
             # Draw the label
-            label_surface = self.font.render(self.labels[idx], True, self.font_color)
+            label_surface = self.font.render(self.labels[idx], True, self.font_color)  # Using self.font for labels
             label_rect = label_surface.get_rect(center=(x + self.image_size[0] // 2, y + self.image_size[1] + 20))
             self.screen.blit(label_surface, label_rect)
 
     def on_image_click(self, image_file):
         """Handle image click events."""
         if image_file in self.clicked_images:
-            self.clicked_images.remove(image_file)
+            self.clicked_images.remove(image_file)  # Deselect if already clicked
         else:
             if len(self.clicked_images) < 2:
-                self.clicked_images.append(image_file)
+                self.clicked_images.add(image_file)  # Select if fewer than 2 images are selected
 
         if len(self.clicked_images) == 2:
             self.show_loading_screen()
@@ -123,13 +152,13 @@ class PictureGridApp:
         self.screen.fill((0, 0, 0))  # Clear the screen
         if self.loading_frames:
             self.play_gif()
-        pygame.time.delay(3000)  # Simulate loading time
+        pygame.time.delay(20)  # Simulate loading time
         self.show_selection_screen()
 
     def play_gif(self):
         """Play the loading GIF animation."""
         for frame in self.loading_frames:
-            self.screen.blit(frame, (0, 0))
+            self.screen.blit(frame, (self.square_x, self.square_y))
             pygame.display.flip()
             pygame.time.delay(100)
 
@@ -147,12 +176,12 @@ class PictureGridApp:
 
             if os.path.exists(new_image_path):
                 new_image = pygame.image.load(new_image_path)
-                new_image = pygame.transform.scale(new_image, (self.screen_width, self.screen_height))
-                self.screen.blit(new_image, (0, 0))
+                new_image = pygame.transform.scale(new_image, (self.square_size, self.square_size))
+                self.screen.blit(new_image, (self.square_x, self.square_y))
 
                 # Draw the back button
-                back_button_rect = pygame.Rect(self.screen_width - 210, self.screen_height - 60, 200, 50)
-                pygame.draw.rect(self.screen, (255, 255, 0), back_button_rect)  # Yellow button
+                back_button_rect = pygame.Rect(self.square_x + self.square_size - 210, self.square_y + self.square_size - 60, 200, 50)
+                pygame.draw.rect(self.screen, (255, 255, 0), back_button_rect, border_radius=10)  # Yellow button with rounded corners
                 back_button_text = self.font.render("← Back", True, (0, 0, 0))  # Black text
                 back_button_text_rect = back_button_text.get_rect(center=back_button_rect.center)
                 self.screen.blit(back_button_text, back_button_text_rect)
@@ -173,7 +202,7 @@ class PictureGridApp:
 
     def reset_selection(self):
         """Reset the selection and return to the image grid."""
-        self.clicked_images = []
+        self.clicked_images = set()
         self.selected_frames = {}
         self.main_loop()
 
@@ -188,17 +217,23 @@ class PictureGridApp:
                     for idx, image_file in enumerate(self.file_names):
                         row = idx // 5
                         col = idx % 5
-                        x = col * (self.image_size[0] + self.grid_x_spacing) + self.grid_x_spacing
-                        y = row * (self.image_size[1] + self.grid_y_spacing) + self.banner_height + self.grid_y_spacing
+                        x = self.square_x + col * (self.image_size[0] + self.grid_x_spacing) + self.grid_x_spacing
+                        y = self.square_y + row * (self.image_size[1] + self.grid_y_spacing) + self.banner_height + self.grid_y_spacing
                         rect = pygame.Rect(x, y, self.image_size[0], self.image_size[1])
                         if rect.collidepoint(event.pos):
                             self.on_image_click(image_file)
 
-            self.screen.fill((0, 0, 0))  # Clear the screen
+            # Clear the screen and draw black bars
+            self.screen.fill((0, 0, 0))  # Fill the entire screen with black
+
+            # Draw the background image only within the square block
             if self.background_image:
-                self.screen.blit(self.background_image, (0, 0))
+                self.screen.blit(self.background_image, (self.square_x, self.square_y))
+
+            # Draw the banner and grid
             self.display_banner()
             self.display_image_grid()
+
             pygame.display.flip()
             self.clock.tick(30)
 
