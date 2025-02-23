@@ -4,7 +4,7 @@ from pygame.locals import *
 from PIL import Image, ImageSequence
 
 class PictureGridApp:
-    def __init__(self, image_dir, banner_path, back_button_path, selections_dir, file_names, labels, priority_list, scaling_factor=1.0, loading_gif_path=None, background_path=None):
+    def __init__(self, image_dir, banner_path, back_button_path, selections_dir, file_names, labels, priority_list, scaling_factor=1.0, loading_gif_path=None, background_path=None, loading_duration=2000):
         self.image_dir = image_dir
         self.banner_path = banner_path
         self.back_button_path = back_button_path
@@ -15,6 +15,7 @@ class PictureGridApp:
         self.scaling_factor = scaling_factor
         self.loading_gif_path = loading_gif_path
         self.background_path = background_path
+        self.loading_duration = loading_duration  # Duration in milliseconds
 
         # Initialize pygame
         pygame.init()
@@ -30,13 +31,13 @@ class PictureGridApp:
 
         # Set up fonts
         self.font = pygame.font.Font(None, int(24 * self.scaling_factor))  # Font for labels
-        self.title_font = pygame.font.Font(None, int(48 * self.scaling_factor))  # Larger font for title
+        self.title_font = pygame.font.SysFont('Arial', int(30 * self.scaling_factor))  # Standard font for title bar
 
         # Set up image size and other grid-related attributes
         self.image_size = (int(139 * self.scaling_factor), int(139 * self.scaling_factor))
-        self.grid_x_spacing = int(13 * self.scaling_factor)
-        self.grid_y_spacing = int(25 * self.scaling_factor)
-        self.banner_height = int(80 * self.scaling_factor)  # Increased height to accommodate rounded rectangle
+        self.grid_x_spacing = int(30 * self.scaling_factor)
+        self.grid_y_spacing = int(30 * self.scaling_factor)
+        self.banner_height = int(100 * self.scaling_factor)  # Increased height to accommodate rounded rectangle
 
         # Calculate the square block size
         self.square_size = min(self.screen_width, self.screen_height)
@@ -148,19 +149,24 @@ class PictureGridApp:
             self.show_loading_screen()
 
     def show_loading_screen(self):
-        """Show the loading screen."""
-        self.screen.fill((0, 0, 0))  # Clear the screen
-        if self.loading_frames:
-            self.play_gif()
-        pygame.time.delay(20)  # Simulate loading time
+        """Show the loading screen for a specified duration and then display the selection screen."""
+        start_time = pygame.time.get_ticks()
+        # Loop until the specified loading duration has passed
+        while pygame.time.get_ticks() - start_time < self.loading_duration:
+            # If a loading GIF exists, cycle through its frames repeatedly
+            if self.loading_frames:
+                for frame in self.loading_frames:
+                    self.screen.fill((0, 0, 0))  # Clear the screen
+                    self.screen.blit(frame, (self.square_x, self.square_y))
+                    pygame.display.flip()
+                    pygame.time.delay(100)
+                    # Check if the total loading duration has been exceeded
+                    if pygame.time.get_ticks() - start_time >= self.loading_duration:
+                        break
+            else:
+                # If no GIF is provided, simply delay a bit before checking again
+                pygame.time.delay(100)
         self.show_selection_screen()
-
-    def play_gif(self):
-        """Play the loading GIF animation."""
-        for frame in self.loading_frames:
-            self.screen.blit(frame, (self.square_x, self.square_y))
-            pygame.display.flip()
-            pygame.time.delay(100)
 
     def show_selection_screen(self):
         """Show the selection screen with the combined image."""
@@ -182,7 +188,7 @@ class PictureGridApp:
                 # Draw the back button
                 back_button_rect = pygame.Rect(self.square_x + self.square_size - 210, self.square_y + self.square_size - 60, 200, 50)
                 pygame.draw.rect(self.screen, (255, 255, 0), back_button_rect, border_radius=10)  # Yellow button with rounded corners
-                back_button_text = self.font.render("← Back", True, (0, 0, 0))  # Black text
+                back_button_text = self.font.render("Back", True, (0, 0, 0))  # Black text
                 back_button_text_rect = back_button_text.get_rect(center=back_button_rect.center)
                 self.screen.blit(back_button_text, back_button_text_rect)
 
@@ -252,4 +258,6 @@ if __name__ == "__main__":
     LABELS = ["zünftig", "rüüdig", "kult-urig", "appropriated", "laborig", "huereaffig", "sauglatt", "kriegerisch", "creepy", "cute", "magisch", "cringe", "extraterrestrisch", "teuflisch", "random", "schwurblig", "boomerig", "feministisch", "superstark", "bönzlig"]
     PRIORITY_LIST = [1, 2, 3, 4, 13, 6, 7, 8, 9, 10, 11, 17, 5, 14, 15, 16, 12, 18, 19, 20]  # Example priority list
 
-    app = PictureGridApp(IMAGE_DIR, BANNER_PATH, BACK_BUTTON_PATH, SELECTIONS_DIR, FILE_NAMES, LABELS, PRIORITY_LIST, scaling_factor=1.37, loading_gif_path=LOADING_GIF_PATH, background_path=BACKGROUND_PATH)
+    # Here, loading_duration is set to 2000 milliseconds (2 seconds)
+    app = PictureGridApp(IMAGE_DIR, BANNER_PATH, BACK_BUTTON_PATH, SELECTIONS_DIR, FILE_NAMES, LABELS, PRIORITY_LIST,
+                         scaling_factor=1.37, loading_gif_path=LOADING_GIF_PATH, background_path=BACKGROUND_PATH, loading_duration=2000)
