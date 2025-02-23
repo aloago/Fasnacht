@@ -1,10 +1,16 @@
 import os
 import pygame
+import random  # For random image selection
+import RPi.GPIO as GPIO  # For GPIO control
 from pygame.locals import *
 from PIL import Image, ImageSequence
 
 class PictureGridApp:
     def __init__(self, image_dir, banner_path, back_button_path, selections_dir, file_names, labels, priority_list, scaling_factor=1.0, loading_gif_path=None, background_path=None, loading_duration=2000):
+        # GPIO setup
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(2, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # Internal pull-up
+        
         self.image_dir = image_dir
         self.banner_path = banner_path
         self.back_button_path = back_button_path
@@ -39,7 +45,7 @@ class PictureGridApp:
         self.grid_y_spacing = int(44 * self.scaling_factor)
         self.banner_height = int(100 * self.scaling_factor)  # Increased height to accommodate rounded rectangle
 
-        # Calculate the square block size
+        # Calculate the square block size and position
         self.square_size = min(self.screen_width, self.screen_height)
         self.square_x = (self.screen_width - self.square_size) // 10
         self.square_y = (self.screen_height - self.square_size) // 10
@@ -133,7 +139,7 @@ class PictureGridApp:
                 pygame.draw.rect(self.screen, self.highlight_color, border_rect, width=4)
 
             # Draw the label
-            label_surface = self.font.render(self.labels[idx], True, self.font_color)  # Using self.font for labels
+            label_surface = self.font.render(self.labels[idx], True, self.font_color)
             label_rect = label_surface.get_rect(center=(x + self.image_size[0] // 2, y + self.image_size[1] + 20))
             self.screen.blit(label_surface, label_rect)
 
@@ -210,11 +216,49 @@ class PictureGridApp:
         """Reset the selection and return to the image grid."""
         self.clicked_images = set()
         self.selected_frames = {}
-        self.main_loop()
+        # Restarting the main loop from here may not be ideal,
+        # but for this design, we simply continue processing in main_loop.
+
+    def show_forced_selection(self):
+        """Show a random image from the predefined list without a back button."""
+        forced_images = [
+            "spoerri-federer.jpg",
+            "sau-wonderwoman.jpg",
+            "krieger-grinch.jpg",
+            "affe-pippi.jpg",
+            "fritschi-clown.jpg"
+        ]
+        selected_image = random.choice(forced_images)
+        image_path = os.path.join(self.selections_dir, selected_image)
+
+        if not os.path.exists(image_path):
+            print(f"Forced selection image {selected_image} not found.")
+            return
+
+        # Load and scale the image
+        new_image = pygame.image.load(image_path)
+        new_image = pygame.transform.scale(new_image, (self.square_size, self.square_size))
+
+        # Display loop for forced selection
+        while self.running and GPIO.input(2) == GPIO.HIGH:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+                    return
+
+            self.screen.fill((0, 0, 0))
+            self.screen.blit(new_image, (self.square_x, self.square_y))
+            pygame.display.flip()
+            self.clock.tick(30)
 
     def main_loop(self):
         """Main loop to handle events and update the screen."""
         while self.running:
+            # Check GPIO state first; if HIGH, enter forced selection mode.
+            if GPIO.input(2) == GPIO.HIGH:
+                self.show_forced_selection()
+                continue  # Skip the rest of the loop while in forced selection
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
@@ -229,14 +273,12 @@ class PictureGridApp:
                         if rect.collidepoint(event.pos):
                             self.on_image_click(image_file)
 
-            # Clear the screen and draw black bars
-            self.screen.fill((0, 0, 0))  # Fill the entire screen with black
-
-            # Draw the background image only within the square block
+            # Clear the screen and draw background
+            self.screen.fill((0, 0, 0))
             if self.background_image:
                 self.screen.blit(self.background_image, (self.square_x, self.square_y))
 
-            # Draw the banner and grid
+            # Draw the banner and image grid
             self.display_banner()
             self.display_image_grid()
 
@@ -244,6 +286,9 @@ class PictureGridApp:
             self.clock.tick(30)
 
         pygame.quit()
+
+    def __del__(self):
+        GPIO.cleanup()  # Cleanup GPIO on exit
 
 if __name__ == "__main__":
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
