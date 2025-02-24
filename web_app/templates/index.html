@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Picture Grid App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        :root {
+            --scaling-factor: {{ scaling_factor }};
+            --image-size: calc(180px * var(--scaling-factor));
+            --border-width: 6px;
+            --grid-spacing: calc(10px * var(--scaling-factor));
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="square-block">
+            <div class="banner">
+                <div class="banner-text">Randomisiere zwei Mottos - Randomize two Themes</div>
+            </div>
+            
+            <div class="grid-container">
+                {% for i in range(20) %}
+                <div class="grid-item" data-filename="{{ file_names[i] }}" data-priority="{{ priority_list[i] }}">
+                    <img src="{{ url_for('static', filename='Images/Grid/' + file_names[i]) }}" 
+                         alt="{{ labels[i] }}">
+                    <div class="image-label">{{ labels[i] }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="loading-screen" id="loadingScreen">
+            <img src="{{ url_for('static', filename='Images/Other/loading.gif') }}">
+        </div>
+
+        <div class="selection-screen" id="selectionScreen">
+            <img id="combinedImage" src="" alt="Combined selection">
+            <button id="backButton" class="back-button">Back</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

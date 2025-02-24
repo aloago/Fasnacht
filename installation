@@ -1,0 +1,72 @@
+Raspberry Pi OS Bullseye Lite 32 Bit
+user pi, password on Whatsapp
+run:
+sudo apt-get update && sudo apt-get upgrade -y
+sudo apt-get install xorg openbox python3-tk xinput xinput-calibrator unclutter
+mkdir -p /home/pi/myapp
+sudo apt install git
+git clone https://github.com/aloago/Fasnacht
+cd /home/pi/myapp
+sudo apt-get install python3-venv
+python3 -m venv venv
+source venv/bin/activate
+pip install -r ../Fasnacht/requirements.txt
+nano /home/pi/.xinitrc
+paste the following:
+                                                  
+#!/bin/sh
+# Start the lightweight window manager
+openbox &
+# Wait a moment to ensure Openbox starts
+sleep 2
+# Rotate the display using xrandr (adjust the output name as needed)
+# First, check your output name with: xrandr --query
+xrandr --output HDMI-1 --rotate left
+unclutter -idle 0 &
+DISPLAY=:0 xinput --set-prop 14 "Coordinate Transformation Matrix" 0 1 0 -1 0 1 0 0 1
+DISPLAY=:0 xinput --set-prop 15 "Coordinate Transformation Matrix" 0 1 0 -1 0 1 0 0 1
+# Change to your app directory, activate the virtual environment, and run your Python app
+cd /home/pi/myapp
+. /home/pi/myapp/venv/bin/activate
+cd ..
+cd Fasnacht
+python3 testing.py
+
+save and close-----------
+run commands:-----------------
+
+chmod +x /home/pi/.xinitrc
+sudo nano /etc/systemd/system/myapp.service
+
+paste the following:------------------
+
+[Unit]
+Description=Start X and run Python tkinter app
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/pi/.Xauthority
+ExecStart=/usr/bin/startx /home/pi/.xinitrc
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=graphical.target
+
+
+then run:----------------
+
+sudo systemctl daemon-reload
+sudo systemctl enable myapp.service
+
+sudo reboot
+
+
+
+
+
+
+
