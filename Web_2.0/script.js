@@ -8,7 +8,6 @@ const config = {
             "magisch", "cringe", "extraterrestrisch", "teuflisch", "random", 
             "schwurblig", "boomerig", "feministisch", "superstark", "bönzlig"],
     "priority_list": [1, 2, 3, 4, 13, 6, 7, 8, 9, 10, 11, 17, 5, 14, 15, 16, 12, 18, 19, 20],
-    "scaling_factor": 0.75,
     "loading_time": 2000
 }
 
