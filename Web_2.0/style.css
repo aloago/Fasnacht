@@ -44,12 +44,12 @@ body {
 }
 
 .banner {
-    height: 8vmin;
+    height: 9vmin;
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: #FFFF00;
-    margin: 2vmin; /* Adds margin around the banner */
+    margin: 1vmin; /* Adds margin around the banner */
     margin-bottom: 0;
     border-radius: 2vmin;
 }
