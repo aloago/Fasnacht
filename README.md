@@ -1,2 +1,3 @@
 # Installation
-`curl -fsSL https://raw.githubusercontent.com/aloago/Fasnacht/refs/heads/main/Install-Web.sh | sh`
+- `curl -fsSL https://raw.githubusercontent.com/aloago/Fasnacht/refs/heads/main/Install-Web.sh | sh`
+- enable auto-login
