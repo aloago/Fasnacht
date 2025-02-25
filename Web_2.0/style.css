@@ -106,3 +106,12 @@ body {
 .back-button:hover {
     transform: scale(1.05);
 }
+
+* {
+    user-select: none; /* Standard syntax */
+    -webkit-user-select: none; /* For Safari */
+    -moz-user-select: none; /* For Firefox */
+    -ms-user-select: none; /* For Internet Explorer */
+  }
+  
+  

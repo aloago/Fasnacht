@@ -35,6 +35,7 @@ Object.entries(config.files).forEach(([filename, data]) => {
   const img = document.createElement('img');
   img.src = `Images/Grid/${filename}`;
   img.alt = data.label;
+  img.draggable = false;
 
   const labelDiv = document.createElement('div');
   labelDiv.classList.add('image-label');
@@ -95,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const combinedName = `${sortedItems[0].filename.split('.')[0]}-${sortedItems[1].filename.split('.')[0]}.webp`;
     combinedImage.src = `Images/Selections/${combinedName}`;
+    combinedImage.draggable = false;
     selectionScreen.style.display = 'block';
   }
 
