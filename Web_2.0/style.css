@@ -7,14 +7,22 @@ body {
     font-family: Arial, sans-serif;
 }
 
+* {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none; /* Standard syntax */
+    -webkit-user-select: none; /* For Safari */
+    -moz-user-select: none; /* For Firefox */
+    -ms-user-select: none; /* For Internet Explorer */
+  }
+
 .square-block {
     position: absolute;
     background-color: #4387BA;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: min(100vh, 100vw);
-    height: min(100vh, 100vw);
+    width: 100vmin;
+    height: 100vmin;
     box-sizing: border-box;
 }
 
@@ -36,25 +44,31 @@ body {
 }
 
 .banner {
-    height: 10%;
+    height: 8vmin;
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: #FFFF00;
+    margin: 2vmin; /* Adds margin around the banner */
+    margin-bottom: 0;
+    border-radius: 2vmin;
 }
+
 
 .banner-text {
     font-family: Arial, sans-serif;
-    font-size: 1.5em;
+    font-size: 3vmin;
     font-weight: bold;
     text-align: center;
     color: black;
 }
 
 .grid-container {
-    height: 90%;
+    height: 90vmin;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
+    padding: 2vmin;
+    box-sizing: border-box;
 }
 
 .grid-item {
@@ -66,52 +80,50 @@ body {
 }
 
 .grid-item img {
-    border: 0.5em solid transparent;
-    border-radius: 1em;
+    border: 1vmin solid transparent;
+    border-radius: 3vmin;
     width: 80%;
 }
 
+
 .grid-item.selected img {
-    border: 0.5em solid #FFFF00;
+    border: 1vmin solid #FFFF00;
 }
 
 .image-label {
     color: white;
-    font-weight: bold;
+    font-size: 2vmin;
 }
 
 .loading-screen img {
-    height: 50vh;
+    height: 50vmin;
 }
 
 .selection-screen img {
-    width: min(100vh, 100vw);
-    height: min(100vh, 100vw);
+    width: 100vmin;
+    height: 100vmin;
 }
 
 .back-button {
     position: absolute;
-    bottom: 1em;
-    right: 1em;
+    bottom: 2vmin;
+    right: 2vmin;
     background-color: #FFFF00;
     border: none;
-    border-radius: 10px;
-    padding: 0.5em;
-    font-size: 1.5em;
+    border-radius: 1vmin;
+    padding: 1vmin;
+    font-size: 2.5vmin;
     font-weight: bold;
     cursor: pointer;
     color: black;
 }
-
-.back-button:hover {
-    transform: scale(1.05);
+  
+.scale-on-touch {
+    transition: transform 0.1s ease; /* Smooth transition for scaling */
 }
 
-* {
-    user-select: none; /* Standard syntax */
-    -webkit-user-select: none; /* For Safari */
-    -moz-user-select: none; /* For Firefox */
-    -ms-user-select: none; /* For Internet Explorer */
-  }
-  
+.scale-on-touch.pressed {
+    transform: scale(0.90); /* Slightly scales down the element */
+}
+
   
