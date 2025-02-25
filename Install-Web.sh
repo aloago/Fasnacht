@@ -19,5 +19,5 @@ chmod +x ~/.config/openbox/autostart
 # Ensure startx runs on login
 echo '[[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && startx' >> ~/.bash_profile
 
-# Start the X session manually for this run (will autostart on reboot)
-startx
+# Reboot the system
+sudo reboot
