@@ -1,80 +1,110 @@
 const config = {
-    "file_names": ["fritschi.webp", "hexe.webp", "spoerri.webp", "basler.webp", "fisch.webp", 
-                "affe.webp", "sau.webp", "krieger.webp", "clown.webp", "hase.webp", 
-                "einhorn.png", "grinch.webp", "alien.webp", "teufel.webp", "guy.webp", 
-                "ueli.webp", "steampunk.webp", "pippi.webp", "wonderwoman.webp", "federer.webp"],
-    "labels": ["zünftig", "rüüdig", "kult-urig", "appropriated", "laborig", 
-            "huereaffig", "sauglatt", "kriegerisch", "creepy", "cute", 
-            "magisch", "cringe", "extraterrestrisch", "teuflisch", "random", 
-            "schwurblig", "boomerig", "feministisch", "superstark", "bönzlig"],
-    "priority_list": [1, 2, 3, 4, 13, 6, 7, 8, 9, 10, 11, 17, 5, 14, 15, 16, 12, 18, 19, 20],
-    "loading_time": 2000
-}
+    files: {
+      "fritschi.webp": { label: "zünftig", priority: 1 },
+      "hexe.webp": { label: "rüüdig", priority: 2 },
+      "spoerri.webp": { label: "kult-urig", priority: 3 },
+      "basler.webp": { label: "appropriated", priority: 4 },
+      "fisch.webp": { label: "laborig", priority: 13 },
+      "affe.webp": { label: "huereaffig", priority: 6 },
+      "sau.webp": { label: "sauglatt", priority: 7 },
+      "krieger.webp": { label: "kriegerisch", priority: 8 },
+      "clown.webp": { label: "creepy", priority: 9 },
+      "hase.webp": { label: "cute", priority: 10 },
+      "einhorn.png": { label: "magisch", priority: 11 },
+      "grinch.webp": { label: "cringe", priority: 17 },
+      "alien.webp": { label: "extraterrestrisch", priority: 5 },
+      "teufel.webp": { label: "teuflisch", priority: 14 },
+      "guy.webp": { label: "random", priority: 15 },
+      "ueli.webp": { label: "schwurblig", priority: 16 },
+      "steampunk.webp": { label: "boomerig", priority: 12 },
+      "pippi.webp": { label: "feministisch", priority: 18 },
+      "wonderwoman.webp": { label: "superstark", priority: 19 },
+      "federer.webp": { label: "bönzlig", priority: 20 }
+    },
+    loading_time: 2000
+};
 
-for (let i = 0; i < 20; i++) {
-    document.querySelector('.grid-container').innerHTML += `
-    <div class="grid-item" data-filename="${config["file_names"][i]}" data-priority="${config["priority_list"][i]}">
-            <img src="Images/Grid/${config["file_names"][i]}" 
-                    alt="${config["labels"][i]}">
-            <div class="image-label">${config["labels"][i]}</div>
-        </div>
-    `
-}
+// Build the grid using Object.entries to iterate over the files.
+const fragment = document.createDocumentFragment();
+Object.entries(config.files).forEach(([filename, data]) => {
+  const gridItem = document.createElement('div');
+  gridItem.classList.add('grid-item');
+  gridItem.dataset.filename = filename;
+  gridItem.dataset.priority = data.priority;
+
+  const img = document.createElement('img');
+  img.src = `Images/Grid/${filename}`;
+  img.alt = data.label;
+
+  const labelDiv = document.createElement('div');
+  labelDiv.classList.add('image-label');
+  labelDiv.textContent = data.label;
+
+  gridItem.appendChild(img);
+  gridItem.appendChild(labelDiv);
+  fragment.appendChild(gridItem);
+});
+document.querySelector('.grid-container').appendChild(fragment);
 
 document.addEventListener('DOMContentLoaded', () => {
-    const gridItems = document.querySelectorAll('.grid-item');
-    const loadingScreen = document.getElementById('loadingScreen');
-    const selectionScreen = document.getElementById('selectionScreen');
-    const backButton = document.getElementById('backButton');
-    const combinedImage = document.getElementById('combinedImage');
-    
-    let selectedItems = new Set();
+  // Cache frequently used elements.
+  const gridContainer = document.querySelector('.grid-container');
+  const squareBlock = document.querySelector('.square-block');
+  const loadingScreen = document.getElementById('loadingScreen');
+  const selectionScreen = document.getElementById('selectionScreen');
+  const backButton = document.getElementById('backButton');
+  const combinedImage = document.getElementById('combinedImage');
 
-    gridItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const filename = item.dataset.filename;
-            
-            if (selectedItems.has(filename)) {
-                selectedItems.delete(filename);
-                item.classList.remove('selected');
-            } else if (selectedItems.size < 2) {
-                selectedItems.add(filename);
-                item.classList.add('selected');
-            }
+  let selectedItems = new Set();
+  let debounceTimer;
 
-            if (selectedItems.size === 2) {
-                showLoadingScreen();
-            }
-        });
-    });
+  // Use event delegation on the grid container.
+  gridContainer.addEventListener('click', (event) => {
+    const item = event.target.closest('.grid-item');
+    if (!item) return;
 
-    function showLoadingScreen() {
-        document.querySelector('.square-block').style.display = 'none';
-        loadingScreen.style.display = 'block';
-        
-        setTimeout(() => {
-            loadingScreen.style.display = 'none';
-            showSelectionScreen();
-        }, config["loading_time"]);
-    }
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      const filename = item.dataset.filename;
+      if (selectedItems.has(filename)) {
+        selectedItems.delete(filename);
+        item.classList.remove('selected');
+      } else if (selectedItems.size < 2) {
+        selectedItems.add(filename);
+        item.classList.add('selected');
+      }
 
-    function showSelectionScreen() {
-        const sortedFilenames = Array.from(selectedItems).sort((a, b) => {
-            const aPriority = parseInt(document.querySelector(`[data-filename="${a}"]`).dataset.priority);
-            const bPriority = parseInt(document.querySelector(`[data-filename="${b}"]`).dataset.priority);
-            return aPriority - bPriority;
-        });
+      if (selectedItems.size === 2) {
+        showLoadingScreen();
+      }
+    }, 100); // 100ms debounce delay
+  });
 
-        const combinedName = `${sortedFilenames[0].split('.')[0]}-${sortedFilenames[1].split('.')[0]}.webp`;
-        combinedImage.src = `Images/Selections/${combinedName}`;
-        
-        selectionScreen.style.display = 'block';
-    }
+  function showLoadingScreen() {
+    squareBlock.style.display = 'none';
+    loadingScreen.style.display = 'block';
 
-    backButton.addEventListener('click', () => {
-        selectionScreen.style.display = 'none';
-        document.querySelector('.square-block').style.display = 'block';
-        selectedItems.clear();
-        gridItems.forEach(item => item.classList.remove('selected'));
-    });
+    setTimeout(() => {
+      loadingScreen.style.display = 'none';
+      showSelectionScreen();
+    }, config.loading_time);
+  }
+
+  function showSelectionScreen() {
+    // Sort the selected items based on their priority.
+    const sortedItems = Array.from(selectedItems)
+      .map(filename => ({ filename, ...config.files[filename] }))
+      .sort((a, b) => a.priority - b.priority);
+
+    const combinedName = `${sortedItems[0].filename.split('.')[0]}-${sortedItems[1].filename.split('.')[0]}.webp`;
+    combinedImage.src = `Images/Selections/${combinedName}`;
+    selectionScreen.style.display = 'block';
+  }
+
+  backButton.addEventListener('click', () => {
+    selectionScreen.style.display = 'none';
+    squareBlock.style.display = 'block';
+    selectedItems.clear();
+    gridContainer.querySelectorAll('.grid-item').forEach(item => item.classList.remove('selected'));
+  });
 });
