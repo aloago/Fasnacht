@@ -5,7 +5,7 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox falkon git -y
 
 # Clone the web application repository
-git clone https://github.com/aloago/Fasnacht.git ~
+git clone https://github.com/aloago/Fasnacht.git ~./Fasnacht
 
 # Create Openbox config directory if it doesn't exist
 mkdir -p ~/.config/openbox
