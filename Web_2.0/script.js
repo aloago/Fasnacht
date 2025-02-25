@@ -56,29 +56,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const combinedImage = document.getElementById('combinedImage');
 
   let selectedItems = new Set();
-  let debounceTimer;
 
-  // Use event delegation on the grid container.
-  gridContainer.addEventListener('click', (event) => {
+    // Use event delegation on the grid container.
+    gridContainer.addEventListener('click', (event) => {
     const item = event.target.closest('.grid-item');
     if (!item) return;
 
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      const filename = item.dataset.filename;
-      if (selectedItems.has(filename)) {
+    const filename = item.dataset.filename;
+    if (selectedItems.has(filename)) {
         selectedItems.delete(filename);
         item.classList.remove('selected');
-      } else if (selectedItems.size < 2) {
+    } else if (selectedItems.size < 2) {
         selectedItems.add(filename);
         item.classList.add('selected');
-      }
+    }
 
-      if (selectedItems.size === 2) {
+    if (selectedItems.size === 2) {
         showLoadingScreen();
-      }
-    }, 100); // 100ms debounce delay
-  });
+    }
+    });
+
 
   function showLoadingScreen() {
     squareBlock.style.display = 'none';
