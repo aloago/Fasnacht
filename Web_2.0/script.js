@@ -1,8 +1,8 @@
 const config = {
-    "file_names": ["fritschi.jpg", "hexe.jpg", "spoerri.jpg", "basler.jpg", "fisch.jpg", 
-                "affe.jpg", "sau.jpg", "krieger.jpg", "clown.jpg", "hase.jpg", 
-                "einhorn.png", "grinch.jpg", "alien.jpg", "teufel.jpg", "guy.jpg", 
-                "ueli.jpg", "steampunk.jpg", "pippi.jpg", "wonderwoman.jpg", "federer.jpg"],
+    "file_names": ["fritschi.webp", "hexe.webp", "spoerri.webp", "basler.webp", "fisch.webp", 
+                "affe.webp", "sau.webp", "krieger.webp", "clown.webp", "hase.webp", 
+                "einhorn.png", "grinch.webp", "alien.webp", "teufel.webp", "guy.webp", 
+                "ueli.webp", "steampunk.webp", "pippi.webp", "wonderwoman.webp", "federer.webp"],
     "labels": ["zünftig", "rüüdig", "kult-urig", "appropriated", "laborig", 
             "huereaffig", "sauglatt", "kriegerisch", "creepy", "cute", 
             "magisch", "cringe", "extraterrestrisch", "teuflisch", "random", 
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return aPriority - bPriority;
         });
 
-        const combinedName = `${sortedFilenames[0].split('.')[0]}-${sortedFilenames[1].split('.')[0]}.jpg`;
+        const combinedName = `${sortedFilenames[0].split('.')[0]}-${sortedFilenames[1].split('.')[0]}.webp`;
         combinedImage.src = `Images/Selections/${combinedName}`;
         
         selectionScreen.style.display = 'block';
