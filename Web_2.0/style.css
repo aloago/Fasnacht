@@ -1,5 +1,5 @@
 :root {
-    --vertical-offset: 0px; /* Default vertical offset */
+    --vertical-offset: 50%; /* Default vertical offset */
 }
 
 body {
