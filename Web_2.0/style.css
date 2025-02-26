@@ -1,3 +1,7 @@
+:root {
+    --vertical-offset: 0px; /* Default vertical offset */
+}
+
 body {
     height: 100vh;
     margin: 0;
@@ -18,7 +22,7 @@ body {
 .square-block {
     position: absolute;
     background-color: #4387BA;
-    top: 50%;
+    top: calc(0% + var(--vertical-offset)); /* Adjust vertical position */;
     left: 50%;
     transform: translate(-50%, -50%);
     width: 100vmin;
@@ -29,7 +33,7 @@ body {
 
 .loading-screen {
     position: absolute;
-    top: 50%;
+    top: calc(0% + var(--vertical-offset)); /* Adjust vertical position */;
     left: 50%;
     transform: translate(-50%, -50%);
     display: none;
@@ -37,7 +41,7 @@ body {
 
 .selection-screen {
     position: absolute;
-    top: 50%;
+    top: calc(0% + var(--vertical-offset)); /* Adjust vertical position */;
     left: 50%;
     transform: translate(-50%, -50%);
     display: none;
