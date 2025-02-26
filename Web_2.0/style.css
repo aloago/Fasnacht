@@ -9,23 +9,26 @@ body {
 
 * {
     -webkit-tap-highlight-color: transparent;
-    user-select: none; /* Standard syntax */
-    -webkit-user-select: none; /* For Safari */
-    -moz-user-select: none; /* For Firefox */
-    -ms-user-select: none; /* For Internet Explorer */
-  }
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+:root {
+    --vertical-offset: 0px; /* Default vertical offset */
+}
 
 .square-block {
     position: absolute;
     background-color: #4387BA;
-    top: 50%;
+    top: calc(0% + var(--vertical-offset)); /* Adjust vertical position */
     left: 50%;
     transform: translate(-50%, -50%);
     width: 100vmin;
     height: 100vmin;
     box-sizing: border-box;
 }
-
 
 .loading-screen {
     position: absolute;
@@ -49,25 +52,25 @@ body {
     justify-content: center;
     align-items: center;
     background-color: #FFFF00;
-    margin: 1vmin; /* Adds margin around the banner */
+    margin: 3vmin; /* Adds margin around the banner */
     margin-bottom: 0;
+    margin-top: 1.5vh;
     border-radius: 2vmin;
 }
 
-
 .banner-text {
     font-family: Arial, sans-serif;
-    font-size: 3vmin;
+    font-size: 3.5vmin;
     font-weight: bold;
     text-align: center;
     color: black;
 }
 
 .grid-container {
-    height: 90vmin;
+    height: 89vmin;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    padding: 2vmin;
+    padding: 1vmin;
     box-sizing: border-box;
 }
 
@@ -85,7 +88,6 @@ body {
     width: 80%;
 }
 
-
 .grid-item.selected img {
     border: 1vmin solid #FFFF00;
 }
@@ -96,7 +98,7 @@ body {
 }
 
 .loading-screen img {
-    height: 50vmin;
+    height: 85vmin;
 }
 
 .selection-screen img {
@@ -116,14 +118,17 @@ body {
     font-weight: bold;
     cursor: pointer;
     color: black;
+    display: block;
 }
-  
+
+.back-button.hidden{
+    display: none;
+}
+
 .scale-on-touch {
-    transition: transform 0.1s ease; /* Smooth transition for scaling */
+    transition: transform 0.1s ease;
 }
 
 .scale-on-touch.pressed {
-    transform: scale(0.90); /* Slightly scales down the element */
+    transform: scale(0.90);
 }
-
-  
