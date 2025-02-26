@@ -190,3 +190,39 @@ function addPressedClass(event) {
 function removePressedClass(event) {
     event.target.classList.remove('pressed');
 }
+
+let easterEggCount = 0;
+let lastTapTime = 0;
+const EGG_ACTIVATION_COUNT = 3;
+const EGG_TIME_WINDOW = 3000;
+
+const banner = document.querySelector('.banner'); 
+
+banner.addEventListener('click', function(event) {
+    console.log('Banner clicked!');
+    const now = Date.now();
+    
+    if (now - lastTapTime > EGG_TIME_WINDOW) {
+        easterEggCount = 0;
+    }
+
+    easterEggCount++;
+    lastTapTime = now;
+
+    if (easterEggCount >= EGG_ACTIVATION_COUNT) {
+        console.log('Easter egg activated!');
+        showEasterEgg();
+        easterEggCount = 0;
+    }
+});
+
+function showEasterEgg() {
+    squareBlock.style.display = 'none';
+    selectionScreen.style.display = 'block';
+    backButton.style.display = 'none';
+    combinedImage.src = 'Images/Other/easteregg.png';
+    
+    setTimeout(() => {
+        returnToGrid();
+    }, 5000);
+}
