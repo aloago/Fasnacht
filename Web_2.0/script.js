@@ -22,7 +22,7 @@ const config = {
         "federer.webp": { label: "bönzlig", priority: 20 }
     },
     loading_time: 1000,
-    back_button_delay: 100,
+    back_button_delay: 0,
     selection_delay: 250,
 };
 
