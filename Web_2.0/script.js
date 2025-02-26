@@ -27,6 +27,7 @@ const config = {
 };
 
 const socket = new WebSocket('ws://localhost:8765');
+let previousGpioState = null; // Track previous state
 
 const gpioFiles = [
     "spoerri-fisch.webp",
@@ -74,16 +75,21 @@ function returnToGrid() {
 
 // Handle WebSocket messages
 socket.addEventListener('message', (event) => {
-    const gpioState = event.data === 'True'; // Convert string to boolean
-
-    if (!gpioState) {
-        // GPIO is low: show a random file and lock the screen
-        showGpioLockScreen();
-    } else {
-        // GPIO is high: return to the grid and reset the selection state
-        returnToGrid();
+    const currentGpioState = event.data === 'True'; // Convert string to boolean
+    
+    // Only act if the state has changed
+    if (currentGpioState !== previousGpioState) {
+        if (!currentGpioState) {
+            // GPIO is low: show a random file and lock the screen
+            showGpioLockScreen();
+        } else {
+            // GPIO is high: return to the grid and reset the selection state
+            returnToGrid();
+        }
+        previousGpioState = currentGpioState; // Update the previous state
     }
 });
+
 
 // Handle WebSocket errors
 socket.addEventListener('error', (error) => {
