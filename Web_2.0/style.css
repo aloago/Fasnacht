@@ -117,13 +117,13 @@ body {
     cursor: pointer;
     color: black;
 }
-  
+/*
 .scale-on-touch {
-    transition: transform 0.1s ease; /* Smooth transition for scaling */
+    transition: transform 0.1s ease;
 }
 
 .scale-on-touch.pressed {
-    transform: scale(0.90); /* Slightly scales down the element */
+    transform: scale(0.90);
 }
 
-  
+*/
